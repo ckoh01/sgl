@@ -1,10 +1,9 @@
-# source/component/timer/lm.cfg
 #
 # MIT License
 #
-# Copyright(c) 2023-present All contributors of SGL  
+# Copyright(c) 2023-present All contributors of SGL
 # Document reference link: https://sgl-docs.readthedocs.io
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
@@ -22,24 +21,9 @@
 # SOFTWARE.
 #
 
-# enable soft timer
-CONFIG_SGL_SOFT_TIMER
-    choices = n, y
-    default = n
-
-PATH += .
-PATH += timer
-
-SRC-$(CONFIG_SGL_SOFT_TIMER)    += timer/sgl_timer.c
-
-
-# enable qrcode generator
-CONFIG_SGL_QRCODE
-    choices = n, y
-    default = n
-
-PATH += .
-PATH += qrcode
-
-SRC-$(CONFIG_SGL_QRCODE_GEN)    += qrcode/qrcodegen.c
-SRC-$(CONFIG_SGL_QRCODE_GEN)    += qrcode/sgl_qrcode.c
+set(SGL_SOURCE
+    ${SGL_SOURCE}
+    ${CMAKE_CURRENT_LIST_DIR}/timer/sgl_timer.c
+    ${CMAKE_CURRENT_LIST_DIR}/qrcode/qrcodegen.c
+    ${CMAKE_CURRENT_LIST_DIR}/qrcode/sgl_qrcode.c
+)

@@ -27,6 +27,7 @@
 #include "sgl_log.h"
 #include <string.h>
 
+#if (CONFIG_SGL_TIMER)
 #define SGL_SHORT_WHEEL_INIT(idx) { .next = &short_wheel[idx], .prev = &short_wheel[idx] }
 #define SGL_LONG_WHEEL_INIT(idx)  { .next = &long_wheel[idx],  .prev = &long_wheel[idx] }
 
@@ -243,3 +244,5 @@ void sgl_timer_handler(void)
 
     last_tick = now;
 }
+
+#endif /* CONFIG_SGL_TIMER */
