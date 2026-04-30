@@ -1,4 +1,4 @@
-/* source/widgets/sgl_bar.h
+/* source/components/qrcode/sgl_qrcode.c
  *
  * MIT License
  *
@@ -78,7 +78,7 @@ static void qr_canvas_cb(sgl_surf_t *surf, sgl_obj_t *obj, sgl_event_t *evt)
         .y2 = (int16_t)(off_y + canvas_h - 1),
     };
     sgl_draw_fill_rect(surf, &obj->area, &bg, 0,
-                       SGL_COLOR_WHITE, SGL_ALPHA_MAX);
+                       SGL_COLOR_WHITE, qrcode->alpha);
 
     /* 2. Dark modules */
     for (int my = 0; my < qr_size; my++) {
@@ -92,7 +92,7 @@ static void qr_canvas_cb(sgl_surf_t *surf, sgl_obj_t *obj, sgl_event_t *evt)
                 .y2 = (int16_t)(off_y + quiet_px + my * qrcode->qr_scale + qrcode->qr_scale - 1),
             };
             sgl_draw_fill_rect(surf, &obj->area, &mod, 0,
-                               SGL_COLOR_BLACK, SGL_ALPHA_MAX);
+                               SGL_COLOR_BLACK, qrcode->alpha);
         }
     }
 }

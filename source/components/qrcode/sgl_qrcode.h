@@ -1,4 +1,4 @@
-/* source/components/sgl_qrcode.h
+/* source/components/qrcode/sgl_qrcode.h
  *
  * MIT License
  *
@@ -59,7 +59,7 @@ extern "C" {
  * @param obj sgl general object
  * @param qr_buf pointer to the encoded QR matrix buffer
  * @param qr_version QR code version (1 to 40), Modules formula = 4 * version + 17
- * @param qr_quite_zone quiet zone in modules (minimum 4 for standard QR codes, 2 is acceptable for internal use on a small screen where the scanner is held close)
+ * @param qr_quiet_zone quiet zone in modules (minimum 4 for standard QR codes, 2 is acceptable for internal use on a small screen where the scanner is held close)
  * @param qr_scale scale factor for each module (e.g., 2 means each module is drawn as a 2x2 pixel square)
  * @param alpha alpha value (0 to 255)
  */
