@@ -62,32 +62,31 @@ static void sgl_textlist_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
         .radius = obj->radius,
         .pixmap = textlist->pixmap,
     };
-
-    const int list_h = obj->coords.y2 - obj->coords.y1 + 1;
-    const int item_pad = sgl_max(obj->radius, obj->border + SGL_TEXTLIST_ITEM_PAD);
     const int item_height = sgl_font_get_height(textlist->font) + 2 * SGL_TEXTLIST_ITEM_SPACE;
-    const int16_t text_pos_x1 = obj->coords.x1 + item_pad;
-    const int16_t text_pos_x2 = obj->coords.x2 - item_pad;
-    int16_t text_pos_y =  obj->coords.y1 + SGL_TEXTLIST_ITEM_SPACE;
-    const int16_t hline_h = item_height - SGL_TEXTLIST_ITEM_SPACE;
-    sgl_textlist_item_t *item = textlist->head;
-
-    int item_idx = 0;
-    sgl_rect_t select = {
-        .x1 = obj->coords.x1,
-        .y1 = obj->coords.y1,
-        .x2 = obj->coords.x2,
-        .y2 = obj->coords.y1 + item_height
-    };
+    const int list_h = obj->coords.y2 - obj->coords.y1 + 1;
 
     if(evt->type == SGL_EVENT_DRAW_MAIN) {
+        const int item_pad = sgl_max(obj->radius, obj->border + SGL_TEXTLIST_ITEM_PAD);
+        const int16_t text_pos_x1 = obj->coords.x1 + item_pad;
+        const int16_t text_pos_x2 = obj->coords.x2 - item_pad;
+        int16_t text_pos_y =  obj->coords.y1 + SGL_TEXTLIST_ITEM_SPACE;
+        const int16_t hline_h = item_height - SGL_TEXTLIST_ITEM_SPACE;
+        sgl_textlist_item_t *item = textlist->head;
+
+        int item_idx = 0;
+        sgl_rect_t select = {
+            .x1 = obj->coords.x1,
+            .y1 = obj->coords.y1,
+            .x2 = obj->coords.x2,
+            .y2 = obj->coords.y1 + item_height
+        };
+
         sgl_draw_rect(surf, &obj->area, &obj->coords, &bg_desc);
 
         text_pos_y += textlist->pos_y;
         sgl_draw_fill_hline(surf, &obj->area, text_pos_y - SGL_TEXTLIST_ITEM_SPACE, text_pos_x1, text_pos_x2, 1,
                                             textlist->item_text_color, textlist->alpha);
-        while (item != NULL)
-        {
+        while (item != NULL) {
             if (text_pos_y >= obj->area.y2) {
                 break;
             }
@@ -190,6 +189,7 @@ sgl_obj_t* sgl_textlist_create(sgl_obj_t* parent)
     sgl_obj_set_movable(obj);
     sgl_obj_set_border_width(obj, 1);
 
+    textlist->font = sgl_get_system_font();
     textlist->alpha = SGL_THEME_ALPHA;
     textlist->bg_color = SGL_THEME_COLOR;
     textlist->border_color = SGL_THEME_BORDER_COLOR;
@@ -316,39 +316,6 @@ void sgl_textlist_set_border_width(sgl_obj_t *obj, uint8_t width)
 }
 
 /**
- * @brief set the selected item of the textlist by index
- * @param obj textlist object
- * @param index index of the selected item
- * @return none
- */
-void sgl_textlist_set_selected_by_index(sgl_obj_t *obj, int16_t index)
-{
-    sgl_textlist_t *textlist = (sgl_textlist_t *)obj;
-    textlist->item_selected = index;
-    sgl_obj_set_dirty(obj);
-}
-
-/**
- * @brief set the selected item of the textlist by text
- * @param obj textlist object
- * @param text text of the selected item
- * @return none
- */
-void sgl_textlist_set_selected_by_text(sgl_obj_t *obj, char *text)
-{
-    sgl_textlist_t *textlist = (sgl_textlist_t *)obj;
-    sgl_textlist_item_t *item = textlist->head;
- 
-    for (int i = 0; i < textlist->item_num && item != NULL; i++, item = item->next) {
-        if (strcmp(item->text, text) == 0) {
-            textlist->item_selected = i;
-            sgl_obj_set_dirty(obj);
-            return;
-        }
-    }
-}
-
-/**
  * @brief add an item to the textlist
  * @param obj textlist object
  * @param text text of the item
@@ -406,4 +373,54 @@ int16_t sgl_textlist_get_selected_index(sgl_obj_t *obj)
 {
     sgl_textlist_t *textlist = (sgl_textlist_t *)obj;
     return textlist->item_selected;
+}
+
+/**
+ * @brief delete an item by index of the textlist
+ * @param obj textlist object
+ * @param index index of the item
+ * @return none
+ */
+void sgl_textlist_delete_item_by_index(sgl_obj_t *obj, int16_t index)
+{
+    sgl_textlist_t *textlist = (sgl_textlist_t *)obj;
+    sgl_textlist_item_t *curr = textlist->head;
+    sgl_textlist_item_t *prev = NULL;
+
+    if (obj == NULL || index < 0 || index >= textlist->item_num) {
+        return;
+    }
+
+    for (int i = 0; i < index; i++) {
+        prev = curr;
+        curr = curr->next;
+    }
+
+    if (prev == NULL) {
+        textlist->head = curr->next;
+    } else {
+        prev->next = curr->next;
+    }
+
+    sgl_free(curr);
+    textlist->item_num --;
+}
+
+/**
+ * @brief delete an item by text of the textlist
+ * @param obj textlist object
+ * @param text text of the item
+ * @return none
+ */
+void sgl_textlist_delete_item_by_text(sgl_obj_t *obj, char *text)
+{
+    sgl_textlist_t *textlist = (sgl_textlist_t *)obj;
+    sgl_textlist_item_t *curr = textlist->head;
+
+    for (int i = 0; i < textlist->item_num && curr != NULL; i++, curr = curr->next) {
+        if (strcmp(curr->text, text) == 0) {
+            sgl_textlist_delete_item_by_index(obj, i);
+            break;
+        }
+    }
 }

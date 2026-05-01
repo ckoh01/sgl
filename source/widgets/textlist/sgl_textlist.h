@@ -151,22 +151,6 @@ void sgl_textlist_set_alpha(sgl_obj_t *obj, uint8_t alpha);
 void sgl_textlist_set_border_width(sgl_obj_t *obj, uint8_t width);
 
 /**
- * @brief set the selected item of the textlist by index
- * @param obj textlist object
- * @param index index of the selected item
- * @return none
- */
-void sgl_textlist_set_selected_by_index(sgl_obj_t *obj, int16_t index);
-
-/**
- * @brief set the selected item of the textlist by text
- * @param obj textlist object
- * @param text text of the selected item
- * @return none
- */
-void sgl_textlist_set_selected_by_text(sgl_obj_t *obj, char *text);
-
-/**
  * @brief add an item to the textlist
  * @param obj textlist object
  * @param text text of the item
@@ -187,5 +171,21 @@ char* sgl_textlist_get_selected_text(sgl_obj_t *obj);
  * @return selected item index
  */
 int16_t sgl_textlist_get_selected_index(sgl_obj_t *obj);
+
+/**
+ * @brief delete an item by index of the textlist
+ * @param obj textlist object
+ * @param index index of the item
+ * @return none
+ */
+void sgl_textlist_delete_item_by_index(sgl_obj_t *obj, int16_t index);
+
+/**
+ * @brief delete an item by text of the textlist
+ * @param obj textlist object
+ * @param text text of the item
+ * @return none
+ */
+void sgl_textlist_delete_item_by_text(sgl_obj_t *obj, char *text);
 
 #endif // !__SGL_TEXTLIST_H__

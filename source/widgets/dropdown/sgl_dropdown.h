@@ -34,11 +34,10 @@
 #include <string.h>
 
 
-typedef struct sgl_dropdown_option {
-    struct sgl_dropdown_option *next;
+typedef struct sgl_dropdown_item {
+    struct sgl_dropdown_item *next;
     const char *text;
-} sgl_dropdown_option_t;
-
+} sgl_dropdown_item_t;
 
 /**
  * @brief sgl dropdown struct
@@ -46,18 +45,21 @@ typedef struct sgl_dropdown_option {
  */
 typedef struct sgl_dropdown {
     sgl_obj_t             obj;
-    sgl_draw_rect_t       body_desc;
+    sgl_dropdown_item_t   *head;
+    sgl_dropdown_item_t   *tail;
     const sgl_font_t      *font;
-    sgl_dropdown_option_t *head;
-    sgl_dropdown_option_t *expend_start;
     sgl_color_t           text_color;
-    uint16_t              option_num;
-    int16_t               selected;
-    int16_t               option_h;
-    int16_t               expand_h;
-    uint8_t               clicked;
+    int16_t               item_selected;
+    sgl_color_t           item_selected_color;
+    uint16_t              item_num;
+    sgl_color_t           bg_color;
+    sgl_color_t           border_color;
+    int16_t               pos_y;
+    uint16_t              option_h;
+    uint8_t               alpha;
     bool                  is_open;
-}sgl_dropdown_t;
+    uint16_t              max_visible_item;
+} sgl_dropdown_t;
 
 
 /**
@@ -89,18 +91,18 @@ void sgl_dropdown_set_border_width(sgl_obj_t *obj, uint8_t width);
 void sgl_dropdown_set_border_color(sgl_obj_t *obj, sgl_color_t color);
 
 /**
+ * @brief set the selected color of dropdown
+ * @param obj dropdown object
+ * @param color selected option color
+ */
+void sgl_dropdown_set_selected_color(sgl_obj_t *obj, sgl_color_t color);
+
+/**
  * @brief set dropdown object's radius
  * @param obj dropdown object
  * @param radius radius
  */
 void sgl_dropdown_set_radius(sgl_obj_t *obj, uint8_t radius);
-
-/**
- * @brief set dropdown object's pixmap
- * @param obj dropdown object
- * @param pixmap pixmap
- */
-void sgl_dropdown_set_pixmap(sgl_obj_t *obj, const sgl_pixmap_t *pixmap);
 
 /**
  * @brief set dropdown object's alpha
@@ -124,14 +126,6 @@ void sgl_dropdown_set_text_color(sgl_obj_t *obj, sgl_color_t color);
  * @note font must be initialized
  */
 void sgl_dropdown_set_text_font(sgl_obj_t *obj, const sgl_font_t* font);
-
-/**
- * @brief set dropdown object's selected index
- * @param obj dropdown object
- * @param index selected index
- * @return none
- */
-void sgl_dropdown_set_selected_index(sgl_obj_t *obj, int index);
 
 /**
  * @brief get dropdown object's selected index
