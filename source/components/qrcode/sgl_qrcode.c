@@ -177,7 +177,12 @@ sgl_obj_t* sgl_qrcode_create(sgl_obj_t* parent)
 
     /* Create a opaque overlay to support QR code drawing */
     qrcode->canvas = sgl_rect_create(obj);
-    if (!qrcode->canvas) { return NULL; }
+    if (!qrcode->canvas) {
+        sgl_free(qrcode->qr_buf);
+        qrcode->qr_buf = NULL;
+        sgl_free(qrcode);
+        return NULL;
+    }
 
     sgl_obj_set_pos(qrcode->canvas, 0, 0);
     sgl_obj_set_size(qrcode->canvas, qrcode->width, qrcode->height);
