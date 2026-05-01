@@ -78,7 +78,7 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
     sgl_dropdown_item_t *item = dropdown->head;
 
     switch (evt->type) {
-    case SGL_EVENT_DRAW_MAIN:
+    case SGL_EVENT_DRAW_MAIN: {
         bg_coords.y2 = bg_coords.y1 + dropdown->option_h - 1;
         sgl_draw_rect(surf, &obj->area, &bg_coords, &bg_desc);
         const int text_pos_y = (dropdown->option_h - sgl_font_get_height(dropdown->font) + 1) / 2;
@@ -163,7 +163,8 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
                 item_idx ++;
             }
         }
-        break;
+    }
+    break;
     
     case SGL_EVENT_MOVE_UP:
         if (dropdown->is_open) {
@@ -172,7 +173,7 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
             }
             sgl_obj_set_dirty(obj);
         }
-        break;
+    break;
 
     case SGL_EVENT_MOVE_DOWN:
         if (dropdown->is_open) {
@@ -181,7 +182,7 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
             }
             sgl_obj_set_dirty(obj);
         }
-        break;
+    break;
 
     case SGL_EVENT_KEY_ENTER:
     case SGL_EVENT_CLICKED:
@@ -198,7 +199,7 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
         }
 
         sgl_obj_set_dirty(obj);
-        break;
+    break;
 
     case SGL_EVENT_RELEASED:
         if (dropdown->pos_y > 0) {
@@ -210,7 +211,7 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
             dropdown->pos_y = list_h - dropdown->item_num * item_height;
             sgl_obj_set_dirty(obj);
         }
-        break;
+    break;
 
     case SGL_EVENT_DESTROYED:
         while (item != NULL) {
@@ -218,7 +219,7 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
             sgl_free(item);
             item = next;
         }
-        break;
+    break;
 
     default: break;
     }
