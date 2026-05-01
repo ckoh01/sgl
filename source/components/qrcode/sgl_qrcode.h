@@ -32,10 +32,7 @@
 #include <sgl_mm.h>
 #include <sgl_cfgfix.h>
 #include <string.h>
-
 #include "qrcodegen.h"
-
-#if (CONFIG_SGL_QRCODE)
 
 #ifdef __cplusplus
 extern "C" {
@@ -87,8 +84,5 @@ void sgl_qrcode_set_size(sgl_obj_t *obj, uint16_t width, uint16_t height);
 #ifdef __cplusplus
 }
 #endif
-
-#endif // CONFIG_SGL_QRCODE
-
 
 #endif // __SGL_QRCODE_H__

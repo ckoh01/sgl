@@ -31,12 +31,8 @@
 #include <string.h>
 #include "sgl.h"
 
-
-
 #include "qrcodegen.h"
 #include "sgl_qrcode.h"
-
-#if (CONFIG_SGL_QRCODE)
 
 /* ---- SGL custom draw callback ---- */
 
@@ -306,6 +302,3 @@ void sgl_qrcode_set_size(sgl_obj_t *obj, uint16_t width, uint16_t height)
 
     sgl_obj_set_dirty(obj);
 }
-
-
-#endif // CONFIG_SGL_QRCODE

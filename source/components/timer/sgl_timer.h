@@ -33,12 +33,9 @@
 #define SGL_TIMER_LONG_SLOT                   (16U)
 #define SGL_TIMER_LONG_STEP                   (128U)
 
-#if (CONFIG_SGL_SOFT_TIMER)
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 /**
  * @brief declare timer structure
@@ -100,8 +97,4 @@ void sgl_timer_handler(void);
 }
 #endif
 
-#endif /* CONFIG_SGL_SOFT_TIMER */
-
 #endif // __SGL_TIMER_H__
-
-
