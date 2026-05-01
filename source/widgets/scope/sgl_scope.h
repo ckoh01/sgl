@@ -38,15 +38,17 @@
  extern "C" {
  #endif
  
- #define SCOPE_MAGIC 0xDEADBEEF
+ 
+#define SCOPE_MAGIC 0xDEADBEEF
+#define SGL_SCOPE_MAX_CHANNELS 4
 
 typedef struct {
     sgl_obj_t obj;
-    int16_t  **data_buffers;          // array of channel data buffers
-    sgl_color_t *waveform_colors;      // array of waveform colors per channel
-    uint8_t *display_counts;           // array of display counts per channel
+    int16_t  *data_buffers[SGL_SCOPE_MAX_CHANNELS];   // per-channel user data buffers
+    sgl_color_t waveform_colors[SGL_SCOPE_MAX_CHANNELS]; // waveform colors per channel
+    uint32_t current_indices[SGL_SCOPE_MAX_CHANNELS];    // current write index per channel
+    uint16_t display_counts[SGL_SCOPE_MAX_CHANNELS];     // display count per channel
     const sgl_font_t *y_label_font;    // font of Y axis labels
-    uint32_t *current_indices;         // array of current indices per channel
     uint32_t  magic;                  // magic number for validity check
     uint32_t  data_len;                // data length per channel
     sgl_color_t bg_color;              // background color
@@ -65,6 +67,7 @@ typedef struct {
     uint8_t line_width;                // width of waveform line
     uint8_t alpha;                     // aplha of waveform
     uint8_t grid_style;                // grid line style（0-solid line，other: dashed line
+    uint8_t dirty_rect_count;          // local dirty rectangle count used by waveform updates
 } sgl_scope_t;
  
  
@@ -226,6 +229,14 @@ void sgl_scope_set_border_width(sgl_obj_t* obj, uint8_t width);
  * @return none
  */
 void sgl_scope_set_grid_line(sgl_obj_t* obj, uint8_t grid);
+
+/**
+ * @brief set scope local dirty rectangle count for waveform updates
+ * @param obj scope object
+ * @param count local dirty rectangle count, 1..SGL_DIRTY_AREA_NUM_MAX
+ * @return none
+ */
+void sgl_scope_set_dirty_rect_count(sgl_obj_t* obj, uint8_t count);
 
 #ifdef __cplusplus
 }
