@@ -247,8 +247,8 @@ void sgl_qrcode_set_qr_scale(sgl_obj_t *obj, uint8_t scale)
 {
     sgl_qrcode_t *qrcode = sgl_container_of(obj, sgl_qrcode_t, obj);
 
-    if (scale == 0) {
-        SGL_LOG_ERROR("Scale must be greater than 0");
+    if (scale < 1 || scale > 15) {
+        SGL_LOG_ERROR("Scale must be between 1 and 15");
         return;
     }
 
@@ -260,6 +260,11 @@ void sgl_qrcode_set_qr_scale(sgl_obj_t *obj, uint8_t scale)
 void sgl_qrcode_set_qr_quiet_zone(sgl_obj_t *obj, uint8_t quiet_zone)
 {
     sgl_qrcode_t *qrcode = sgl_container_of(obj, sgl_qrcode_t, obj);
+
+    if(quiet_zone > 15) {
+        SGL_LOG_ERROR("Quiet zone must be between 0 and 15");
+        return;
+    }
 
     qrcode->qr_quiet_zone = quiet_zone;
 
