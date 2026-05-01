@@ -98,8 +98,9 @@ static inline size_t int_str_len(int val)
  * @param val integer to append
  * @param width alignment width (0 means no alignment)
  * @param left_align whether to use left alignment (true: left, false: right)
+ * @param zero_pad if pad zeroes, pad zeroes instead of spaces
  */
-static inline void append_int(char *buf, size_t size, size_t *pos, int val, int width, bool left_align)
+static inline void append_int(char *buf, size_t size, size_t *pos, int val, int width, bool left_align, bool zero_pad)
 {
     char tmp[64];
     int i = 0;
@@ -111,11 +112,24 @@ static inline void append_int(char *buf, size_t size, size_t *pos, int val, int 
         pad_len = (size_t)width - num_len;
     }
 
-    if (!left_align && pad_len > 0) {
-        pad_align(buf, size, pos, pad_len, ' ');
+    char pad_char = ' ';
+    if (zero_pad && !left_align) {
+        pad_char = '0';
     }
 
-    if (neg) val = -val;
+    if (neg && zero_pad) {
+        append_char(buf, size, pos, '-');
+        val = -val;
+        neg = false;
+    }
+
+    if (!left_align && pad_len > 0) {
+        pad_align(buf, size, pos, pad_len, pad_char);
+    }
+
+    if (neg) {
+        val = -val;
+    }
 
     do {
         tmp[i++] = '0' + (val % 10);
@@ -172,7 +186,7 @@ static void append_float(char *buf, size_t size, size_t *pos, double val, int pr
         frac = -frac;
     }
 
-    append_int(buf, size, pos, int_part, 0, false);
+    append_int(buf, size, pos, int_part, 0, false, false);
     append_char(buf, size, pos, '.');
 
     int prec = (precision >= 0) ? precision : 6;
@@ -206,12 +220,18 @@ int sgl_vsnprintf(char *buf, size_t size, const char *fmt, va_list ap)
         }
 
         fmt++;
+        bool zero_pad = false;
         bool left_align = false;
         int width = 0;
         int precision = -1;
 
         if (*fmt == '-') {
             left_align = true;
+            fmt++;
+        }
+
+        if (*fmt == '0') {
+            zero_pad = true;
             fmt++;
         }
 
@@ -239,7 +259,7 @@ int sgl_vsnprintf(char *buf, size_t size, const char *fmt, va_list ap)
 
         case 'd': {
             int d = va_arg(ap, int);
-            append_int(buf, size, &pos, d, width, left_align);
+            append_int(buf, size, &pos, d, width, left_align, zero_pad);  // 加了个参数
             break;
         }
 
