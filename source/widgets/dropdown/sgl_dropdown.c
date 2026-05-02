@@ -137,19 +137,19 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
                     select.y2 = select.y1 + item_height;
 
                     if ((select.y1 >= (bg_coords.y1 + obj->radius)) && (select.y2 <= (bg_coords.y2 - obj->radius))) {
-                        sgl_draw_fill_rect(surf, &bg_area, &select, 0, dropdown->item_selected_color, dropdown->alpha / 2);
+                        sgl_draw_fill_rect(surf, &bg_area, &select, 0, dropdown->item_selected_color, dropdown->alpha);
                     }
                     else if (select.y1 <= (bg_coords.y1 + obj->radius)) {
                         sgl_area_t select_coords = select;
                         select_coords.y1 = bg_coords.y1;
                         select_coords.y2 = select.y1 + item_height + obj->radius + 1;
-                        sgl_draw_fill_rect(surf, &select, &select_coords, obj->radius, dropdown->item_selected_color, dropdown->alpha / 2);
+                        sgl_draw_fill_rect(surf, &select, &select_coords, obj->radius, dropdown->item_selected_color, dropdown->alpha);
                     }
                     else if (select.y2 >= (bg_coords.y2 - obj->radius)) {
                         sgl_area_t select_coords = select;
                         select_coords.y1 = select.y1 - item_height - obj->radius - 1;
                         select_coords.y2 = bg_coords.y2;
-                        sgl_draw_fill_rect(surf, &select, &select_coords, obj->radius, dropdown->item_selected_color, dropdown->alpha / 2);
+                        sgl_draw_fill_rect(surf, &select, &select_coords, obj->radius, dropdown->item_selected_color, dropdown->alpha);
                     }
                 }
 
@@ -252,7 +252,8 @@ sgl_obj_t* sgl_dropdown_create(sgl_obj_t* parent)
     dropdown->alpha = SGL_THEME_ALPHA;
     dropdown->bg_color = SGL_THEME_COLOR;
     dropdown->border_color = SGL_THEME_BORDER_COLOR;
-    dropdown->item_selected_color = SGL_THEME_BG_COLOR;
+    dropdown->item_selected_color = sgl_color_mixer(SGL_THEME_COLOR, SGL_THEME_BG_COLOR, 128);
+    dropdown->text_color = SGL_THEME_TEXT_COLOR;
     dropdown->item_num = 0;
     dropdown->is_open = false;
     dropdown->font = sgl_get_system_font();

@@ -175,6 +175,16 @@ void sgl_label_set_text(sgl_obj_t *obj, char *text)
     sgl_label_update_area(label);
 }
 
+/**
+ * @brief get the text of the label
+ * @param obj pointer to the label object
+ * @return pointer to the text
+ */
+char* sgl_label_get_text(sgl_obj_t *obj)
+{
+    sgl_label_t *label = sgl_container_of(obj, sgl_label_t, obj);
+    return label->text;
+}
 
 /**
  * @brief set the text of the label with format

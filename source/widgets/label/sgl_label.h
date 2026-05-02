@@ -77,6 +77,13 @@ sgl_obj_t* sgl_label_create(sgl_obj_t* parent);
 void sgl_label_set_text(sgl_obj_t *obj, char *text);
 
 /**
+ * @brief get the text of the label
+ * @param obj pointer to the label object
+ * @return pointer to the text
+ */
+char* sgl_label_get_text(sgl_obj_t *obj);
+
+/**
  * @brief set the text of the label with format
  * @param obj pointer to the label object
  * @param text pointer to the text

@@ -903,6 +903,26 @@ static inline sgl_obj_t* sgl_obj_get_child(sgl_obj_t* obj)
 
 
 /**
+ * @brief get last child of an object
+ * @param obj the object
+ * @return the last child of the object
+ */
+static inline sgl_obj_t* sgl_obj_get_last_child(sgl_obj_t* obj)
+{
+    SGL_ASSERT(obj != NULL);
+    sgl_obj_t *child = obj->child;
+    if (child == NULL) {
+        return NULL;
+    }
+
+    while (child->sibling) {
+        child = child->sibling;
+    }
+    return child;
+}
+
+
+/**
  * @brief check if object has sibling
  * @param  obj object
  * @return true or false, true means object has sibling, false means object has no sibling

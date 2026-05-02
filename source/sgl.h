@@ -46,7 +46,7 @@
 #include "widgets/textbox/sgl_textbox.h"
 #include "widgets/checkbox/sgl_checkbox.h"
 #include "widgets/icon/sgl_icon.h"
-// #include "widgets/listview/sgl_listview.h"
+#include "widgets/viewlist/sgl_viewlist.h"
 #include "widgets/numberkbd/sgl_numberkbd.h"
 #include "widgets/keyboard/sgl_keyboard.h"
 #include "widgets/unzip_image/sgl_unzip_image.h"

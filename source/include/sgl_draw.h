@@ -477,6 +477,38 @@ void draw_line_fill_slanted(sgl_surf_t *surf, sgl_area_t *area, int16_t x1, int1
 
 
 /**
+ * @brief Draw a dashed line using Bresenham's algorithm.
+ * 
+ * @param surf   Pointer to the surface structure.
+ * @param area   Pointer to the area structure defining the valid drawing region.
+ * @param x1     Start X-coordinate.
+ * @param y1     Start Y-coordinate.
+ * @param x2     End X-coordinate.
+ * @param y2     End Y-coordinate.
+ * @param gap    Length of the dash and the gap in pixels. Must be > 0.
+ * @param color  Color of the line.
+ * @return none
+ * @note: This function is Non-anti-aliased!!!!
+ */
+void sgl_draw_dashed_line_noaa(sgl_surf_t *surf, sgl_area_t *area, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t gap, sgl_color_t color);
+
+/**
+ * @brief Fast line drawing with customizable width and alpha blending
+ * @param surf   Pointer to the target surface
+ * @param area   Clipping area for rendering
+ * @param x0     Start X-coordinate.
+ * @param y0     Start Y-coordinate.
+ * @param x1     End X-coordinate.
+ * @param y1     End Y-coordinate.
+ * @param color  Line color
+ * @param width  Line width in pixels
+ * @param alpha  Alpha transparency value
+ * @note: This function is Non-anti-aliased!!!!
+ */
+void sgl_draw_line_noaa(sgl_surf_t *surf, sgl_area_t *area, int16_t x1, int16_t y1, int16_t x2, int16_t y2, sgl_color_t color, uint8_t width, uint8_t alpha);
+
+
+/**
  * @brief draw a line
  * @param surf surface
  * @param area area that contains the line

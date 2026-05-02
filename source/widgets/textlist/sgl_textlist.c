@@ -97,19 +97,19 @@ static void sgl_textlist_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
                 select.y2 = select.y1 + item_height;
 
                 if ((select.y1 > (obj->area.y1 + obj->radius)) && (select.y2 <= (obj->area.y2 - obj->radius))) {
-                    sgl_draw_fill_rect(surf, &obj->area, &select, 0, textlist->item_selected_color, textlist->alpha / 2);
+                    sgl_draw_fill_rect(surf, &obj->area, &select, 0, textlist->item_selected_color, textlist->alpha);
                 }
                 else if (select.y1 <= (obj->area.y1 + obj->radius)) {
                     sgl_area_t select_coords = select;
                     select_coords.y1 = obj->coords.y1;
                     select_coords.y2 = select.y1 + item_height + obj->radius + 1;
-                    sgl_draw_fill_rect(surf, &select, &select_coords, obj->radius, textlist->item_selected_color, textlist->alpha / 2);
+                    sgl_draw_fill_rect(surf, &select, &select_coords, obj->radius, textlist->item_selected_color, textlist->alpha);
                 }
                 else if (select.y2 >= (obj->area.y2 - obj->radius)) {
                     sgl_area_t select_coords = select;
                     select_coords.y1 = select.y1 - item_height - obj->radius - 1;
                     select_coords.y2 = obj->coords.y2;
-                    sgl_draw_fill_rect(surf, &select, &select_coords, obj->radius, textlist->item_selected_color, textlist->alpha / 2);
+                    sgl_draw_fill_rect(surf, &select, &select_coords, obj->radius, textlist->item_selected_color, textlist->alpha);
                 }
             }
 
@@ -124,7 +124,7 @@ static void sgl_textlist_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
         }
     }
     break;
-    
+
     case SGL_EVENT_MOVE_UP:
         if((textlist->pos_y + (textlist->item_num) * item_height) >= (list_h - item_height / 2)) {
             textlist->pos_y -= evt->distance;
@@ -213,8 +213,10 @@ sgl_obj_t* sgl_textlist_create(sgl_obj_t* parent)
     textlist->font = sgl_get_system_font();
     textlist->alpha = SGL_THEME_ALPHA;
     textlist->bg_color = SGL_THEME_COLOR;
+    textlist->item_selected_color = sgl_color_mixer(SGL_THEME_COLOR, SGL_THEME_BORDER_COLOR, 128);
     textlist->border_color = SGL_THEME_BORDER_COLOR;
     textlist->item_selected = -1;
+    textlist->item_text_color = SGL_THEME_TEXT_COLOR;
     textlist->pos_y = 0;
 
     return obj;

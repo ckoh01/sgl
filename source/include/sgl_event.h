@@ -93,7 +93,6 @@ typedef struct sgl_event_pos {
     int16_t y;
 } sgl_event_pos_t;
 
-
 typedef struct sgl_event {
     struct sgl_obj   *obj;
     void             *param;
@@ -102,6 +101,55 @@ typedef struct sgl_event {
     uint16_t         distance;
 } sgl_event_t;
 
+/**
+ * @brief Get the target object of the event
+ * @param event The event to be handled
+ * @return The target object of the event
+ */
+static inline struct sgl_obj* sgl_event_get_target(sgl_event_t *event)
+{
+    return event->obj;
+}
+
+/**
+ * @brief Get the data of the event
+ * @param event The event to be handled
+ * @return The data of the event
+ */
+static inline void* sgl_event_get_data(sgl_event_t *event)
+{
+    return event->param;
+}
+
+/**
+ * @brief Get the position of the event
+ * @param event The event to be handled
+ * @return The position of the event
+ */
+static inline sgl_event_pos_t sgl_event_get_pos(sgl_event_t *event)
+{
+    return event->pos;
+}
+
+/**
+ * @brief Get the type of the event
+ * @param event The event to be handled
+ * @return The type of the event
+ */
+static inline sgl_event_type_t sgl_event_get_type(sgl_event_t *event)
+{
+    return event->type;
+}
+
+/**
+ * @brief Get the move distance of the event
+ * @param event The event to be handled
+ * @return The move distance of the event
+ */
+static inline uint16_t sgl_event_get_move_distance(sgl_event_t *event)
+{
+    return event->distance;
+}
 
 /**
  * @brief Initialize the event queue
@@ -112,14 +160,12 @@ typedef struct sgl_event {
  */
 int sgl_event_queue_init(void);
 
-
 /**
  * @brief Push an event into the event queue
  * @param event The event to be pushed
  * @return 0 on success, -1 on failure
  */
 void sgl_event_queue_push(sgl_event_t event);
-
 
 /**
  * @brief Handle the position event
@@ -128,7 +174,6 @@ void sgl_event_queue_push(sgl_event_t event);
  * @return none
  */
 void sgl_event_send_pos(sgl_event_pos_t pos, sgl_event_type_t type);
-
 
 /**
  * @brief Send an event to the specified object
@@ -139,7 +184,6 @@ static inline void sgl_event_send(sgl_event_t event)
 {
     sgl_event_queue_push(event);
 }
-
 
 /**
  * @brief Send an event to the specified object
@@ -171,7 +215,6 @@ static inline void sgl_event_send_obj(struct sgl_obj *obj, sgl_event_type_t type
     sgl_event_send(event);
 }
 
-
 /**
  * @brief Send a motion event to the specified object
  * @param pos The position of the motion event
@@ -188,7 +231,6 @@ static inline void sgl_event_send_motion(sgl_event_pos_t pos, sgl_event_type_t t
     sgl_event_send(event);
 }
 
-
 /**
  * @brief All event task in SGL, this function will traverse all elements in the event queue, 
  *        respond to each element with an event, so that all events will trigger and point to the 
@@ -197,7 +239,6 @@ static inline void sgl_event_send_motion(sgl_event_pos_t pos, sgl_event_type_t t
  * @return none
 */
 void sgl_event_task(void);
-
 
 /**
  * @brief Touch event read, this function will be called by user
@@ -220,7 +261,6 @@ void sgl_event_task(void);
  *        }
  */
 void sgl_event_pos_input(int16_t x, int16_t y, bool flag);
-
 
 #ifdef __cplusplus
 } /*extern "C"*/

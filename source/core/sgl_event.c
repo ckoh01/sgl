@@ -56,6 +56,7 @@ typedef struct event_queue {
  */
 static struct event_context {
     struct sgl_obj *last_click;
+    struct sgl_obj *last_motion;
     sgl_event_pos_t last_touch;
     event_queue_t   evtq;
 } evt_ctx;
@@ -289,6 +290,21 @@ static void sgl_get_move_info(sgl_event_t *evt)
 
 
 /**
+ * @brief Callback function for event
+ * @param obj The object that triggered the event
+ * @param evt The event that triggered the callback
+ * @return none
+ */
+static inline void event_callback(sgl_obj_t *obj, sgl_event_t *evt)
+{
+    SGL_ASSERT(obj->construct_fn);
+    evt->param = obj->event_data;
+    evt->obj = obj;
+    obj->construct_fn(NULL, obj, evt);
+}
+
+
+/**
  * @brief All event task in SGL, this function will traverse all elements in the event queue, 
  *        respond to each element with an event, so that all events will trigger and point to the 
  *        corresponding callback function
@@ -311,6 +327,12 @@ void sgl_event_task(void)
             } else {
                 obj = evt_ctx.last_click;
                 sgl_get_move_info(&evt);
+
+                if (obj && !sgl_obj_is_movable(obj)) {
+                    evt_ctx.last_motion = obj->parent;
+                    event_callback(evt_ctx.last_motion, &evt);
+                    continue;
+                }
             }
         }
 
@@ -336,11 +358,11 @@ void sgl_event_task(void)
                 obj->pressed = false;
                 evt_ctx.last_click = NULL;
             }
-
-            SGL_ASSERT(obj->construct_fn);
-            evt.param = obj->event_data;
-            evt.obj = obj;
-            obj->construct_fn(NULL, obj, &evt);
+            event_callback(obj, &evt);
+            if (evt_ctx.last_motion) {
+                event_callback(evt_ctx.last_motion, &evt);
+                evt_ctx.last_motion = NULL;
+            }
 
             /* call user event function */
             if(obj->event_fn) {
