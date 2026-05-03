@@ -901,24 +901,23 @@ static inline sgl_obj_t* sgl_obj_get_child(sgl_obj_t* obj)
     return obj->child;
 }
 
-
 /**
  * @brief get last child of an object
  * @param obj the object
  * @return the last child of the object
  */
-static inline sgl_obj_t* sgl_obj_get_last_child(sgl_obj_t* obj)
+sgl_obj_t* sgl_obj_get_last_child(sgl_obj_t* obj);
+
+
+/**
+ * @brief check if object is last child
+ * @param obj the object
+ * @return true or false, true means object is last child, false means object is not last child
+ */
+static inline bool sgl_obj_is_last_child(sgl_obj_t* obj)
 {
     SGL_ASSERT(obj != NULL);
-    sgl_obj_t *child = obj->child;
-    if (child == NULL) {
-        return NULL;
-    }
-
-    while (child->sibling) {
-        child = child->sibling;
-    }
-    return child;
+    return (obj == obj->parent->child);
 }
 
 
@@ -938,11 +937,19 @@ static inline bool sgl_obj_has_sibling(sgl_obj_t *obj) {
  * @param obj the object
  * @return the sibling of the object
  */
-static inline sgl_obj_t* sgl_obj_get_sibling(sgl_obj_t* obj)
+static inline sgl_obj_t* sgl_obj_get_next_sibling(sgl_obj_t* obj)
 {
     SGL_ASSERT(obj != NULL);
     return obj->sibling;
 }
+
+
+/**
+ * @brief get previous sibling of an object
+ * @param obj the object
+ * @return the previous sibling of the object
+ */
+sgl_obj_t* sgl_obj_get_prev_sibling(sgl_obj_t* obj);
 
 
 /**

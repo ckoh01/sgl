@@ -49,7 +49,7 @@ struct sgl_page;
  */
 /* General event type */
 #define  SGL_EVENT_NULL                 (0)
-#define  SGL_EVENT_NORMAL               (1)    
+#define  SGL_EVENT_NORMAL               (1)
 #define  SGL_EVENT_PRESSED              (2)
 #define  SGL_EVENT_RELEASED             (3)
 #define  SGL_EVENT_CLICKED              (4)
@@ -261,6 +261,58 @@ void sgl_event_task(void);
  *        }
  */
 void sgl_event_pos_input(int16_t x, int16_t y, bool flag);
+
+
+#if (CONFIG_SGL_EVENT_PHY_KAY)
+/**
+ * @brief Physical keyboard event UP
+ * @param none
+ * @return none
+ * @note: you can call it in physical keyboard event handler function
+ */
+void sgl_event_key_up(void);
+
+/**
+ * @brief Physical keyboard event DOWN
+ * @param none
+ * @return none
+ * @note: you can call it in physical keyboard event handler function
+ */
+void sgl_event_key_down(void);
+
+/**
+ * @brief Physical keyboard event LEFT
+ * @param none
+ * @return none
+ * @note: you can call it in physical keyboard event handler function
+ */
+void sgl_event_key_left(void);
+
+/**
+ * @brief Physical keyboard event RIGHT
+ * @param none
+ * @return none
+ * @note: you can call it in physical keyboard event handler function
+ */
+void sgl_event_key_right(void);
+
+/**
+ * @brief Physical keyboard event ENTER
+ * @param none
+ * @return none
+ * @note: you can call it in physical keyboard event handler function
+ */
+void sgl_event_key_enter(void);
+
+/**
+ * @brief Physical keyboard event ESC
+ * @param none
+ * @return none
+ * @note: you can call it in physical keyboard event handler function
+ */
+void sgl_event_key_esc(void);
+
+#endif
 
 #ifdef __cplusplus
 } /*extern "C"*/

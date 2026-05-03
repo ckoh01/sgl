@@ -58,6 +58,10 @@ static struct event_context {
     struct sgl_obj *last_click;
     struct sgl_obj *last_motion;
     sgl_event_pos_t last_touch;
+#if (CONFIG_SGL_EVENT_PHY_KAY)
+    struct sgl_obj *focused;
+    bool            focused_selected;
+#endif
     event_queue_t   evtq;
 } evt_ctx;
 
@@ -305,6 +309,22 @@ static inline void event_callback(sgl_obj_t *obj, sgl_event_t *evt)
 
 
 /**
+ * @brief Callback function for event type
+ * @param obj The object that triggered the event
+ * @param type The type of the event
+ * @return none
+ */
+static void event_type_callback(sgl_obj_t *obj, sgl_event_type_t type)
+{
+    sgl_event_t evt;
+    evt.param = obj->event_data;
+    evt.type = type;
+    evt.obj = obj;
+    obj->construct_fn(NULL, obj, &evt);
+}
+
+
+/**
  * @brief Inject motion event to the object
  * @param obj The object that triggered the event
  * @param evt The event that triggered the callback
@@ -481,3 +501,155 @@ void sgl_event_pos_input(int16_t x, int16_t y, bool flag)
         }
     }
 }
+
+#if (CONFIG_SGL_EVENT_PHY_KAY)
+/**
+ * @brief Physical keyboard event UP
+ * @param none
+ * @return none
+ * @note: you can call it in physical keyboard event handler function
+ */
+void sgl_event_key_up(void)
+{
+    if (!evt_ctx.focused || !evt_ctx.focused_selected) {
+        return;
+    }
+    event_type_callback(evt_ctx.focused, SGL_EVENT_KEY_UP);
+}
+
+/**
+ * @brief Physical keyboard event DOWN
+ * @param none
+ * @return none
+ * @note: you can call it in physical keyboard event handler function
+ */
+void sgl_event_key_down(void)
+{
+    if (!evt_ctx.focused || !evt_ctx.focused_selected) {
+        return;
+    }
+    event_type_callback(evt_ctx.focused, SGL_EVENT_KEY_DOWN);
+}
+
+/**
+ * @brief Physical keyboard event LEFT
+ * @param none
+ * @return none
+ * @note: you can call it in physical keyboard event handler function
+ */
+void sgl_event_key_left(void)
+{
+    sgl_obj_t *obj = evt_ctx.focused;
+    if (!obj) {
+        evt_ctx.focused = sgl_screen_act();
+        return;
+    }
+
+    if (evt_ctx.focused_selected) {
+        event_type_callback(evt_ctx.focused, SGL_EVENT_KEY_LEFT);
+        return;
+    }
+
+    event_type_callback(evt_ctx.focused, SGL_EVENT_UNFOCUSED);
+    if (sgl_obj_has_child(obj)) {
+        evt_ctx.focused = sgl_obj_get_child(obj);
+    }
+    else {
+        sgl_obj_t *prev = sgl_obj_get_prev_sibling(obj);
+        if (prev) {
+            evt_ctx.focused = prev;
+        }
+        else {
+            evt_ctx.focused = sgl_obj_get_parent(obj);
+        }
+    }
+
+    event_type_callback(evt_ctx.focused, SGL_EVENT_FOCUSED);
+}
+
+/**
+ * @brief Physical keyboard event RIGHT
+ * @param none
+ * @return none
+ * @note: you can call it in physical keyboard event handler function
+ */
+void sgl_event_key_right(void)
+{
+    sgl_obj_t *obj = evt_ctx.focused;
+    if (!obj) {
+        evt_ctx.focused = sgl_screen_act();
+        return;
+    }
+
+    if (evt_ctx.focused_selected) {
+        event_type_callback(evt_ctx.focused, SGL_EVENT_KEY_RIGHT);
+        return;
+    }
+
+    event_type_callback(evt_ctx.focused, SGL_EVENT_UNFOCUSED);
+    if (sgl_obj_has_child(obj)) {
+        evt_ctx.focused = sgl_obj_get_child(obj);
+    }
+    else {
+        sgl_obj_t *next = sgl_obj_get_next_sibling(obj);
+        if (next) {
+            evt_ctx.focused = next;
+        }
+        else {
+            evt_ctx.focused = sgl_obj_get_parent(obj);
+        }
+    }
+    event_type_callback(evt_ctx.focused, SGL_EVENT_FOCUSED);
+}
+
+/**
+ * @brief Physical keyboard event ENTER
+ * @param none
+ * @return none
+ * @note: you can call it in physical keyboard event handler function
+ */
+void sgl_event_key_enter(void)
+{
+    sgl_obj_t *obj = evt_ctx.focused;
+    if (!obj) {
+        evt_ctx.focused = sgl_screen_act();
+        return;
+    }
+
+    if (evt_ctx.focused_selected) {
+        event_type_callback(evt_ctx.focused, SGL_EVENT_KEY_ENTER);
+    }
+    else {
+        evt_ctx.focused_selected = true;
+        event_type_callback(evt_ctx.focused, SGL_EVENT_FOCUSED);
+    }
+}
+
+/**
+ * @brief Physical keyboard event ESC
+ * @param none
+ * @return none
+ * @note: you can call it in physical keyboard event handler function
+ */
+
+void sgl_event_key_esc(void)
+{
+    sgl_obj_t *obj = evt_ctx.focused;
+    if (!obj) {
+        return;
+    }
+
+    if (evt_ctx.focused_selected) {
+        event_type_callback(evt_ctx.focused, SGL_EVENT_KEY_ESC);
+        evt_ctx.focused_selected = false;
+    }
+    else {
+        sgl_obj_t *parent = sgl_obj_get_parent(obj);
+        if (parent) {
+            evt_ctx.focused = parent;
+        }
+        event_type_callback(evt_ctx.focused, SGL_EVENT_FOCUSED);
+    }
+}
+
+#endif 

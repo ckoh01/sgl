@@ -262,6 +262,44 @@ void sgl_obj_size_zoom(sgl_obj_t *obj, int16_t zoom)
 
 
 /**
+ * @brief get last child of an object
+ * @param obj the object
+ * @return the last child of the object
+ */
+sgl_obj_t* sgl_obj_get_last_child(sgl_obj_t* obj)
+{
+    SGL_ASSERT(obj != NULL);
+    sgl_obj_t *child = NULL;
+
+    sgl_obj_for_each_child(child, obj) {
+        if (child->sibling == NULL) {
+            return child;
+        }
+    }
+    return child;
+}
+
+
+/**
+ * @brief get previous sibling of an object
+ * @param obj the object
+ * @return the previous sibling of the object
+ */
+sgl_obj_t* sgl_obj_get_prev_sibling(sgl_obj_t* obj)
+{
+    SGL_ASSERT(obj != NULL);
+    sgl_obj_t *child = NULL;
+
+    sgl_obj_for_each_child(child, obj) {
+        if (child->sibling == obj) {
+            return child;
+        }
+    }
+    return child;
+}
+
+
+/**
  * @brief move object up a level layout
  * @param obj point to object
  * @return none
@@ -1839,9 +1877,6 @@ static inline void sgl_draw_task(sgl_fbdev_t *fbdev, sgl_area_t *dirty_area, uin
             surf->y1 += draw_h;
         }
 #else
-        /* check dirty area, ensure it is valid */
-        SGL_ASSERT(dirty != NULL && dirty->x1 >= 0 && dirty->y1 >= 0 && dirty->x2 < SGL_SCREEN_WIDTH && dirty->y2 < SGL_SCREEN_HEIGHT);
-
         SGL_LOG_TRACE("[fb:%d]sgl_draw_task: dirty area  x1:%d y1:%d x2:%d y2:%d", fbdev->fb_swap, dirty->x1, dirty->y1, dirty->x2, dirty->y2);
         draw_obj_slice(head, surf);
 #endif
