@@ -58,8 +58,7 @@ typedef int32_t (*sgl_anim_path_algo_t)(uint16_t elaps, uint16_t duration, int32
  * @data:      Pointer to user-defined private data associated with this animation.
  *             Not used internally by the animation engine; intended for application use.
  * 
- * @next:      Pointer to the next animation in a singly-linked list.
- *             Used internally by the animation scheduler to chain active animations.
+ * @node:      Linked list node for animation management.
  * 
  * @act_time:  Current time (in ms) of the animation.
  * 
