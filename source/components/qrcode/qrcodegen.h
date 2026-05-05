@@ -37,6 +37,9 @@
 extern "C" {
 #endif
 
+#ifndef CONFIG_SGL_QRCODE_QR_VERSION_MAX
+#define CONFIG_SGL_QRCODE_QR_VERSION_MAX  (5)
+#endif
 
 /* 
  * This library creates QR Code symbols, which is a type of two-dimension barcode.

@@ -46,6 +46,23 @@ void sgl_boot_logo(void);
 
 #endif // ! CONFIG_SGL_BOOT_LOGO
 
+#if (CONFIG_SGL_MONITOR_TRACE)
+#define  SGL_MONITOR_COORDS_WIDTH       (76)
+#define  SGL_MONITOR_COORDS_HEIGHT      (30)
+#define  SGL_MONITOR_COORDS_X           (SGL_SCREEN_WIDTH - SGL_MONITOR_COORDS_WIDTH)
+#define  SGL_MONITOR_COORDS_Y           (SGL_SCREEN_HEIGHT - SGL_MONITOR_COORDS_HEIGHT)
+#define  SGL_MONITOR_COLOR              (SGL_COLOR_BLACK)
+#define  SGL_MONITOR_ALPHA              (128)
+
+#define  SGL_MONITOR_COORDS             (sgl_area_t){.x1 = SGL_MONITOR_COORDS_X,     \
+                                                     .x2 = SGL_MONITOR_COORDS_X + SGL_SCREEN_WIDTH - 1,     \
+                                                     .y1 = SGL_MONITOR_COORDS_Y,     \
+                                                     .y2 = SGL_MONITOR_COORDS_Y + SGL_SCREEN_HEIGHT - 1,    \
+                                                    }
+
+void sgl_monitor_trace(sgl_surf_t *surf);
+#endif
+
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif

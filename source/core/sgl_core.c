@@ -1751,6 +1751,10 @@ static inline void draw_obj_slice(sgl_obj_t *obj, sgl_surf_t *surf)
         sgl_draw_wireframe(surf, (sgl_area_t*)surf, surf->dirty, 1, SGL_DIRTY_AREA_TRACE_COLOR, SGL_ALPHA_MAX);
     }
 #endif
+
+#if (CONFIG_SGL_MONITOR_TRACE)
+    sgl_monitor_trace(surf);
+#endif
     /* flush dirty area into screen */
     sgl_fbdev_flush_area((sgl_area_t*)surf, surf->buffer);
 }
@@ -1871,7 +1875,7 @@ static inline void sgl_draw_task(sgl_fbdev_t *fbdev, sgl_area_t *dirty_area, uin
 #endif
 
         /* check dirty area, ensure it is valid */
-        SGL_ASSERT(dirty != NULL && dirty->x1 >= 0 && dirty->y1 >= 0 && dirty->x2 < SGL_SCREEN_WIDTH && dirty->y2 < SGL_SCREEN_HEIGHT);
+        SGL_ASSERT(dirty->x1 >= 0 && dirty->y1 >= 0 && dirty->x2 < SGL_SCREEN_WIDTH && dirty->y2 < SGL_SCREEN_HEIGHT);
 
 #if (!CONFIG_SGL_USE_FBDEV_VRAM)
 
