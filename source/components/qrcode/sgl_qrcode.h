@@ -48,7 +48,7 @@ extern "C" {
 #endif
 
 #ifndef SGL_QRCODE_QR_SCALE_DEFAULT
-#define SGL_QRCODE_QR_SCALE_DEFAULT         3
+#define SGL_QRCODE_QR_SCALE_DEFAULT         4
 #endif
 
 /**
@@ -63,8 +63,8 @@ extern "C" {
 typedef struct sgl_qrcode {
     sgl_obj_t          obj;
     sgl_obj_t         *canvas;
-    uint16_t           width;
-    uint16_t           height;
+    int16_t           width;
+    int16_t           height;
     uint8_t*           qr_buf;    /* freed on destroy event */
     uint8_t            qr_version;
     uint8_t            qr_quiet_zone : 4;
@@ -73,13 +73,13 @@ typedef struct sgl_qrcode {
 
 } sgl_qrcode_t;
 
-sgl_obj_t* sgl_qrcode_create(sgl_obj_t* parent);
+sgl_obj_t *sgl_qrcode_create(sgl_obj_t *parent, const char *url);
 void sgl_qrcode_set_url(sgl_obj_t *obj, const char *url);
-void sgl_qrcode_set_qr_version(sgl_obj_t *obj, uint8_t version);
+void sgl_qrcode_set_qr_version(sgl_obj_t *obj, uint8_t version, const char* url);
 void sgl_qrcode_set_qr_scale(sgl_obj_t *obj, uint8_t scale);
 void sgl_qrcode_set_qr_quiet_zone(sgl_obj_t *obj, uint8_t quiet_zone);
 void sgl_qrcode_set_alpha(sgl_obj_t *obj, uint8_t alpha);
-void sgl_qrcode_set_size(sgl_obj_t *obj, uint16_t width, uint16_t height);
+void sgl_qrcode_set_size(sgl_obj_t *obj, int16_t width, int16_t height);
 
 #ifdef __cplusplus
 }

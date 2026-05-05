@@ -34,21 +34,12 @@
 #include "qrcodegen.h"
 #include "sgl_qrcode.h"
 
-/* ---- SGL custom draw callback ---- */
 
-/*
- * qr_canvas_cb - called by SGL each render cycle for the QR canvas object.
- *
- * On SGL_EVENT_DRAW_MAIN:
- *   1. Fills the QR bounding box (including quiet zone) with white.
- *   2. For every dark module in the QR matrix, fills a QR_SCALE×QR_SCALE
- *      rectangle with black using sgl_draw_fill_rect().
- *
- * Coordinates:
- *   The QR is centered on the canvas region.  If the QR (with quiet zone) is wider
- *   than the canvas width, the offset goes negative and SGL clips the excess — the
- *   finder-pattern corners and all data modules remain within canvas bounds
- *   for the version/scale combination specified in ui_qr.h.
+/**
+ * @brief QR code canvas callback for drawing the QR code
+ * @param surf the surface to draw on
+ * @param obj the QR code object
+ * @param evt the draw event
  */
 static void qr_canvas_cb(sgl_surf_t *surf, sgl_obj_t *obj, sgl_event_t *evt)
 {
@@ -61,10 +52,10 @@ static void qr_canvas_cb(sgl_surf_t *surf, sgl_obj_t *obj, sgl_event_t *evt)
     int qr_size   = qrcodegen_getSize(qrcode->qr_buf);
     int quiet_px  = qrcode->qr_quiet_zone * qrcode->qr_scale;
     int canvas_w  = qr_size  * qrcode->qr_scale + 2 * quiet_px;
-    int canvas_h  = canvas_w; /* QR codes are square */
+    int canvas_h  = canvas_w;
 
-    int off_x = (qrcode->width - canvas_w) / 2;
-    int off_y = (qrcode->height - canvas_h) / 2;
+    int off_x = qrcode->canvas->coords.x1 + (qrcode->width - canvas_w) / 2;
+    int off_y = qrcode->canvas->coords.y1 + (qrcode->height - canvas_h) / 2;
 
     /* 1. White background (quiet zone + data area) */
     sgl_area_t bg = {
@@ -93,6 +84,12 @@ static void qr_canvas_cb(sgl_surf_t *surf, sgl_obj_t *obj, sgl_event_t *evt)
     }
 }
 
+/**
+ * @brief QR code object construct callback for SGL events handling
+ * @param surf the surface to draw on
+ * @param obj the QR code object
+ * @param evt the event to handle
+ */
 static void sgl_qrcode_construct_cb(sgl_surf_t *surf, sgl_obj_t *obj, sgl_event_t *evt)
 {
     SGL_UNUSED(surf);
@@ -134,9 +131,10 @@ static void sgl_qrcode_construct_cb(sgl_surf_t *surf, sgl_obj_t *obj, sgl_event_
 /**
  * @brief create a qrcode object
  * @param parent parent object of the qrcode
+ * @param url the URL to be encoded in the QR code. It can be set or updated later by calling sgl_qrcode_set_url() API. 
  * @return qrcode object
  */
-sgl_obj_t* sgl_qrcode_create(sgl_obj_t* parent)
+sgl_obj_t* sgl_qrcode_create(sgl_obj_t* parent, const char* url)
 {
     /* default QR buffer size for the maximum version which is configured by user expectedly*/
     const size_t qr_buf_size = (size_t)qrcodegen_BUFFER_LEN_FOR_VERSION(CONFIG_SGL_QRCODE_QR_VERSION_MAX);
@@ -148,14 +146,6 @@ sgl_obj_t* sgl_qrcode_create(sgl_obj_t* parent)
     }
     memset(qrcode, 0, sizeof(sgl_qrcode_t));
 
-    qrcode->qr_version = CONFIG_SGL_QRCODE_QR_VERSION_MAX;
-    qrcode->qr_quiet_zone = SGL_QRCODE_QR_QUIET_ZONE_DEFAULT;
-    qrcode->qr_scale = SGL_QRCODE_QR_SCALE_DEFAULT;
-
-    /* calcuate width and height by default parameters */
-    qrcode->width = (4 * qrcode->qr_version + 17) * qrcode->qr_scale + 2 * qrcode->qr_quiet_zone * qrcode->qr_scale;
-    qrcode->height = qrcode->width;
-
     qrcode->qr_buf = sgl_malloc(qr_buf_size);
     if(qrcode->qr_buf == NULL) {
         SGL_LOG_ERROR("sgl_qrcode_create: malloc failed");
@@ -163,6 +153,16 @@ sgl_obj_t* sgl_qrcode_create(sgl_obj_t* parent)
         return NULL;
     }
     memset(qrcode->qr_buf, 0, qr_buf_size);
+
+    qrcode->qr_version = CONFIG_SGL_QRCODE_QR_VERSION_MAX;
+    qrcode->qr_quiet_zone = SGL_QRCODE_QR_QUIET_ZONE_DEFAULT;
+    qrcode->qr_scale = SGL_QRCODE_QR_SCALE_DEFAULT;
+    qrcode->alpha = SGL_ALPHA_MAX;
+
+    sgl_qrcode_set_qr_version(&qrcode->obj, qrcode->qr_version, url);
+
+    qrcode->width = qrcodegen_getSize(qrcode->qr_buf) * qrcode->qr_scale + 2 * qrcode->qr_quiet_zone * qrcode->qr_scale;
+    qrcode->height = qrcode->width;
 
     sgl_obj_t *obj = &qrcode->obj;
     sgl_obj_init(&qrcode->obj, parent);
@@ -183,7 +183,6 @@ sgl_obj_t* sgl_qrcode_create(sgl_obj_t* parent)
     sgl_obj_set_pos(qrcode->canvas, 0, 0);
     sgl_obj_set_size(qrcode->canvas, qrcode->width, qrcode->height);
     sgl_rect_set_color(qrcode->canvas, SGL_COLOR_BLACK);
-    sgl_rect_set_alpha(qrcode->canvas, SGL_ALPHA_MAX);
     qrcode->canvas->event_data = qrcode;
     qrcode->canvas->construct_fn = qr_canvas_cb;
 
@@ -225,12 +224,21 @@ void sgl_qrcode_set_url(sgl_obj_t *obj, const char *url)
 }
 
 
-void sgl_qrcode_set_qr_version(sgl_obj_t *obj, uint8_t version)
+void sgl_qrcode_set_qr_version(sgl_obj_t *obj, uint8_t version, const char* url)
 {
     sgl_qrcode_t *qrcode = sgl_container_of(obj, sgl_qrcode_t, obj);
 
     if (version < qrcodegen_VERSION_MIN || version > qrcodegen_VERSION_MAX) {
         SGL_LOG_ERROR("Invalid QR version");
+        return;
+    }
+    if(!url) {
+        /* 
+         * Since the qrcode buffer needs to be re-encoded to reset the version, it's mandatory to provide the url when changing the QR version.
+         * This is for the memory allocation saving purpose, keeping the module as light as possible,  the url is expected to be 
+         * provided by user when calling this API.
+         */
+        SGL_LOG_ERROR("URL cannot be NULL to set QR version");         
         return;
     }
     /* re-aclloating the qrcode buffer by newly sepcified version */
@@ -247,6 +255,7 @@ void sgl_qrcode_set_qr_version(sgl_obj_t *obj, uint8_t version)
     memset(qrcode->qr_buf, 0, qr_buf_size);
 
     qrcode->qr_version = version;
+    sgl_qrcode_set_url(obj, url);
 
     sgl_obj_set_dirty(obj);
 }
@@ -262,6 +271,11 @@ void sgl_qrcode_set_qr_scale(sgl_obj_t *obj, uint8_t scale)
 
     qrcode->qr_scale = scale;
 
+
+    qrcode->width = qrcodegen_getSize(qrcode->qr_buf) * qrcode->qr_scale + 2 * qrcode->qr_quiet_zone * qrcode->qr_scale;
+    qrcode->height = qrcode->width;
+    if(qrcode->canvas) sgl_obj_set_size(qrcode->canvas, qrcode->width, qrcode->height);
+
     sgl_obj_set_dirty(obj);
 }
 
@@ -276,6 +290,10 @@ void sgl_qrcode_set_qr_quiet_zone(sgl_obj_t *obj, uint8_t quiet_zone)
 
     qrcode->qr_quiet_zone = quiet_zone;
 
+    qrcode->width = qrcodegen_getSize(qrcode->qr_buf) * qrcode->qr_scale + 2 * qrcode->qr_quiet_zone * qrcode->qr_scale;
+    qrcode->height = qrcode->width;
+    if(qrcode->canvas) sgl_obj_set_size(qrcode->canvas, qrcode->width, qrcode->height);
+
     sgl_obj_set_dirty(obj);
 }
 
@@ -288,17 +306,20 @@ void sgl_qrcode_set_alpha(sgl_obj_t *obj, uint8_t alpha)
     sgl_obj_set_dirty(obj);
 }
 
-void sgl_qrcode_set_size(sgl_obj_t *obj, uint16_t width, uint16_t height)
+/* 
+ * @brief Set the size of the QR code canvas. Other operations will re-calculate the QR code size based on the version, scale and quiet zone parameters, and it's recommended to call this API to tweak the final QR code size if needed.
+ * @param obj Pointer to the QR code object.
+ * @param width Desired width of the QR code canvas in pixels.
+ * @param height Desired height of the QR code canvas in pixels.
+ */
+void sgl_qrcode_set_size(sgl_obj_t *obj, int16_t width, int16_t height)
 {
     sgl_qrcode_t *qrcode = sgl_container_of(obj, sgl_qrcode_t, obj);
 
     qrcode->width = width;
     qrcode->height = height;
 
-    if (qrcode->canvas) {
-        sgl_obj_set_size(qrcode->canvas, width, height);
-        sgl_obj_set_dirty(qrcode->canvas);
-    }
+    if (qrcode->canvas) sgl_obj_set_size(qrcode->canvas, width, height);
 
     sgl_obj_set_dirty(obj);
 }
