@@ -159,7 +159,7 @@ sgl_obj_t* sgl_qrcode_create(sgl_obj_t* parent, const char* url)
     qrcode->qr_scale = SGL_QRCODE_QR_SCALE_DEFAULT;
     qrcode->alpha = SGL_ALPHA_MAX;
 
-    sgl_qrcode_set_qr_version(qrcode, qrcode->qr_version, url);
+    sgl_qrcode_set_qr_version(&qrcode->obj, qrcode->qr_version, url);
 
     qrcode->width = qrcodegen_getSize(qrcode->qr_buf) * qrcode->qr_scale + 2 * qrcode->qr_quiet_zone * qrcode->qr_scale;
     qrcode->height = qrcode->width;
