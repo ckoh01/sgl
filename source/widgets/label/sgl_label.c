@@ -34,22 +34,22 @@
 
 
 /**
- * @brief to update area of the label
+ * @brief to update text of the label
  * @param label pointer to the label object
  * @return none
  */
-static void sgl_label_update_area(sgl_label_t *label)
+static void sgl_label_update_area(sgl_label_t *label, char *text, sgl_area_t *area)
 {
-    sgl_area_t area;
     sgl_pos_t align_pos;
-    
+
     if (label->font) {
-        align_pos = sgl_get_text_pos(&label->obj.coords, label->font, label->text, 0, (sgl_align_type_t)label->align);
-        area.x1 = align_pos.x + label->transform.offset.offset_x;
-        area.x2 = area.x1 + sgl_font_get_string_width(label->text, label->font);
-        area.y1 = align_pos.y;
-        area.y2 = area.y1 + sgl_font_get_height(label->font);
-        sgl_obj_update_area(&area);
+        if (text) {
+            align_pos = sgl_get_text_pos(&label->obj.coords, label->font, text, 0, (sgl_align_type_t)label->align);
+            area->x1 = align_pos.x + label->transform.offset.offset_x;
+            area->x2 = area->x1 + sgl_font_get_string_width(text, label->font);
+            area->y1 = align_pos.y;
+            area->y2 = area->y1 + sgl_font_get_height(label->font);
+        }
     }
 }
 
@@ -163,8 +163,10 @@ sgl_obj_t* sgl_label_create(sgl_obj_t* parent)
  */
 void sgl_label_set_text(sgl_obj_t *obj, char *text)
 {
+    sgl_area_t area = SGL_AREA_INVALID, new_area = SGL_AREA_INVALID;
     sgl_label_t *label = sgl_container_of(obj, sgl_label_t, obj);
 
+    sgl_label_update_area(label, label->text, &area);
     if (label->dynamic) {
         sgl_free((void *)label->text);
         label->dynamic = 0;
@@ -172,7 +174,9 @@ void sgl_label_set_text(sgl_obj_t *obj, char *text)
     }
 
     label->text = text;
-    sgl_label_update_area(label);
+    sgl_label_update_area(label, text, &new_area);
+    sgl_area_selfmerge(&area, &new_area);
+    sgl_obj_update_area(&area);
 }
 
 /**
@@ -194,25 +198,21 @@ char* sgl_label_get_text(sgl_obj_t *obj)
  */
 void sgl_label_set_text_fmt(sgl_obj_t* obj, const char *fmt, ...)
 {
+    sgl_label_t *label = sgl_container_of(obj, sgl_label_t, obj);
+    sgl_area_t area = SGL_AREA_INVALID, new_area = SGL_AREA_INVALID;
     va_list args;
     va_list args_copy;
-    char *text;
+    char *text = label->text;
     int len;
     size_t cap;
-    sgl_label_t *label = sgl_container_of(obj, sgl_label_t, obj);
 
     va_start(args, fmt);
     va_copy(args_copy, args);
     len = sgl_vsnprintf(NULL, 0, fmt, args_copy);
     va_end(args_copy);
-
-    if (len < 0) {
-        va_end(args);
-        SGL_LOG_ERROR("sgl_label_set_text_fmt: format failed");
-        return;
-    }
-
     cap = ((size_t)len + 2) & ~(size_t)1;
+
+    sgl_label_update_area(label, label->text, &area);
 
     if (label->text_capacity < cap) {
         text = label->dynamic ? sgl_realloc(label->text, cap) : sgl_malloc(cap);
@@ -221,7 +221,6 @@ void sgl_label_set_text_fmt(sgl_obj_t* obj, const char *fmt, ...)
             SGL_LOG_ERROR("sgl_label_set_text_fmt: alloc failed");
             return;
         }
-
         label->text = text;
         label->dynamic = 1;
         label->text_capacity = cap;
@@ -230,7 +229,9 @@ void sgl_label_set_text_fmt(sgl_obj_t* obj, const char *fmt, ...)
     sgl_vsnprintf(label->text, label->text_capacity, fmt, args);
     va_end(args);
 
-    sgl_label_update_area(label);
+    sgl_label_update_area(label, label->text, &new_area);
+    sgl_area_selfmerge(&area, &new_area);
+    sgl_obj_update_area(&area);
 }
 
 /**
