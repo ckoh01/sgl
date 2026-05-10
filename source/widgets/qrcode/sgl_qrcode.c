@@ -47,7 +47,7 @@ static void qrcode_get_pixmap_size(sgl_qrcode_t *qrcode, sgl_rect_t *mod)
     /* safe zone, not fill the ecc all area */
     allow = allow * 80 / 100;
     mod_size = sgl_sqrt(allow);
-    mod->x1 = mod->y1 = qrcode->scale * ((qrcode->qrcode.size - mod_size) / 2 + qrcode->zone) + 1;
+    mod->x1 = mod->y1 = qrcode->scale * ((qrcode->qrcode.size - mod_size) / 2 + qrcode->zone);
     mod->x2 = mod->x1 + mod_size * qrcode->scale;
     mod->y2 = mod->y1 + mod_size * qrcode->scale;
 }
