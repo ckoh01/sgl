@@ -67,6 +67,7 @@ typedef struct sgl_qrcode {
     QRCode             qrcode;
     const sgl_pixmap_t *pixmap;
     uint8_t            *data;
+    sgl_color_t        bg_color;
     sgl_color_t        cell_color;
     uint8_t            cell_radius;
     uint8_t            zone : 4;
@@ -114,6 +115,14 @@ void sgl_qrcode_set_text(sgl_obj_t *obj, const char *text);
  * @return none
  */
 void sgl_qrcode_set_alpha(sgl_obj_t *obj, uint8_t alpha);
+
+/**
+ * @brief set qrcode background color
+ * @param obj qrcode object
+ * @param color qrcode background color
+ * @return none
+ */
+void sgl_qrcode_set_bg_color(sgl_obj_t *obj, sgl_color_t color);
 
 /**
  * @brief set qrcode cell color

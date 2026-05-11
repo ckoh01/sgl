@@ -60,7 +60,7 @@ static void sgl_qrcode_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_
     int16_t radius = sgl_min(obj->radius, qrcode->scale);
     sgl_draw_rect_t desc = {
         .alpha = qrcode->alpha,
-        .color = SGL_COLOR_WHITE,
+        .color = qrcode->bg_color,
         .border = 0,
         .pixmap = NULL,
         .radius = radius,
@@ -130,6 +130,7 @@ sgl_obj_t* sgl_qrcode_create(sgl_obj_t* parent)
     obj->construct_fn = sgl_qrcode_construct_cb;
 
     qrcode->alpha = SGL_ALPHA_MAX;
+    qrcode->bg_color = SGL_COLOR_WHITE;
     qrcode->cell_color = SGL_COLOR_BLACK;
     qrcode->zone = SGL_QRCODE_ZONE_DEFAULT;
     qrcode->scale = SGL_QRCODE_SCALE_DEFAULT;
@@ -203,6 +204,19 @@ void sgl_qrcode_set_alpha(sgl_obj_t *obj, uint8_t alpha)
 {
     sgl_qrcode_t *qrcode = sgl_container_of(obj, sgl_qrcode_t, obj);
     qrcode->alpha = alpha;
+    sgl_obj_set_dirty(obj);
+}
+
+/**
+ * @brief set qrcode background color
+ * @param obj qrcode object
+ * @param color qrcode background color
+ * @return none
+ */
+void sgl_qrcode_set_bg_color(sgl_obj_t *obj, sgl_color_t color)
+{
+    sgl_qrcode_t *qrcode = sgl_container_of(obj, sgl_qrcode_t, obj);
+    qrcode->bg_color = color;
     sgl_obj_set_dirty(obj);
 }
 
