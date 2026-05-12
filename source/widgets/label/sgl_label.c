@@ -192,7 +192,7 @@ void sgl_label_set_text(sgl_obj_t *obj, const char *fmt, ...)
     }
 
     va_start(args, fmt);
-    sgl_vsnprintf(label->text, 128, fmt, args);
+    sgl_vsnprintf(label->text, label->text_capacity, fmt, args);
     va_end(args);
 
     sgl_label_update_area(label, label->text, &new_area);
