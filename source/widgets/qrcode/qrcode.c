@@ -36,6 +36,7 @@
 #include "qrcode.h"
 #include <stdlib.h>
 #include <string.h>
+#include <sgl_math.h>
 
 #if LOCK_VERSION == 0
 
@@ -757,6 +758,9 @@ uint16_t qrcode_getBufferSize(uint8_t version) {
 
 // @TODO: Return error if data is too big.
 int8_t qrcode_initBytes(QRCode *qrcode, uint8_t *modules, uint8_t version, uint8_t ecc, uint8_t *data, uint16_t length) {
+    uint8_t padByte1 = sgl_rand() & 0xFF;
+    uint8_t padByte2 = sgl_rand() & 0xFF;
+
     uint8_t size = version * 4 + 17;
     qrcode->version = version;
     qrcode->size = size;
@@ -791,7 +795,7 @@ int8_t qrcode_initBytes(QRCode *qrcode, uint8_t *modules, uint8_t version, uint8
     bb_appendBits(&codewords, 0, (8 - codewords.bitOffsetOrWidth % 8) % 8);
 
     // Pad with alternate bytes until data capacity is reached
-    for (uint8_t padByte = 0xEC; codewords.bitOffsetOrWidth < (dataCapacity * 8); padByte ^= 0xEC ^ 0x11) {
+    for (uint8_t padByte = 0xEC; codewords.bitOffsetOrWidth < (dataCapacity * 8); padByte ^= padByte1 ^ padByte2) {
         bb_appendBits(&codewords, padByte, 8);
     }
 
