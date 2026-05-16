@@ -43,8 +43,29 @@
  * 
  * Example (in your application code):
  * @code
- *   void* sgl_mm_alloc(size_t size) {
+ *   void sgl_mm_init(void)
+ *   {
+ *       my_custom_mm_init();
+ *   }
+ * 
+ *   void* sgl_mm_alloc(size_t size)
+ *   {
  *       return my_custom_allocator(size);
+ *   }
+ *   
+ *   void sgl_mm_free(void *ptr)
+ *   {
+ *       my_custom_deallocator(ptr);
+ *   }
+ * 
+ *   void sgl_mm_realloc(void *ptr, size_t size)
+ *   {
+ *       return my_custom_reallocator(ptr, size);
+ *   }
+ * 
+ *   sgl_mm_monitor_t sgl_mm_get_monitor(void)
+ *   {
+ *       return sgl_mm_get_monitor();
  *   }
  * @endcode
  */
@@ -129,7 +150,15 @@ sgl_weak_fn void sgl_free(void *p)
     free(p);
 }
 
-
+/**
+ * @brief  memory monitor info
+ * @total_size: total size of memory
+ * @free_size: free size of memory
+ * @used_size: used size of memory
+ * @used_rate: used rate of memory:
+ *             |  8 bit  |  8 bit |          
+ *             |   int   |   dec  |
+ */
 sgl_mm_monitor_t sgl_mm_get_monitor(void)
 {
     int integer = (mem.used_size * 100) / mem.total_size;
