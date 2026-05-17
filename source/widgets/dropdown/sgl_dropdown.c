@@ -107,8 +107,8 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
 
             int item_idx = 0;
             sgl_rect_t select = {
-                .x1 = obj->coords.x1,
-                .x2 = obj->coords.x2,
+                .x1 = obj->coords.x1 + obj->border,
+                .x2 = obj->coords.x2 - obj->border,
             };
 
             bg_coords.y1 = obj->coords.y1 + dropdown->option_h;
@@ -141,14 +141,14 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
                     }
                     else if (select.y1 <= (bg_coords.y1 + obj->radius)) {
                         sgl_area_t select_coords = select;
-                        select_coords.y1 = bg_coords.y1;
+                        select_coords.y1 = bg_coords.y1 + obj->border;
                         select_coords.y2 = select.y1 + item_height + obj->radius + 1;
                         sgl_draw_fill_rect(surf, &select, &select_coords, obj->radius, dropdown->item_selected_color, dropdown->alpha);
                     }
                     else if (select.y2 >= (bg_coords.y2 - obj->radius)) {
                         sgl_area_t select_coords = select;
                         select_coords.y1 = select.y1 - item_height - obj->radius - 1;
-                        select_coords.y2 = bg_coords.y2;
+                        select_coords.y2 = bg_coords.y2 - obj->border;
                         sgl_draw_fill_rect(surf, &select, &select_coords, obj->radius, dropdown->item_selected_color, dropdown->alpha);
                     }
                 }
@@ -202,11 +202,11 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
     break;
 
     case SGL_EVENT_RELEASED:
-        if (dropdown->pos_y > 0) {
+        if (dropdown->pos_y >= 0) {
             dropdown->pos_y = 0;
             sgl_obj_set_dirty(obj);
         }
-        else if((dropdown->pos_y + dropdown->item_num * item_height) < list_h) {
+        else if((dropdown->pos_y + dropdown->item_num * item_height) <= list_h) {
             dropdown->pos_y = list_h - dropdown->item_num * item_height;
             sgl_obj_set_dirty(obj);
         }

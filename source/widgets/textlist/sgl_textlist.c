@@ -76,9 +76,9 @@ static void sgl_textlist_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
 
         int item_idx = 0;
         sgl_rect_t select = {
-            .x1 = obj->coords.x1,
+            .x1 = obj->coords.x1 + obj->border,
             .y1 = obj->coords.y1,
-            .x2 = obj->coords.x2,
+            .x2 = obj->coords.x2 - obj->border,
             .y2 = obj->coords.y1 + item_height
         };
 
@@ -101,14 +101,14 @@ static void sgl_textlist_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
                 }
                 else if (select.y1 <= (obj->area.y1 + obj->radius)) {
                     sgl_area_t select_coords = select;
-                    select_coords.y1 = obj->coords.y1;
+                    select_coords.y1 = obj->coords.y1 + obj->border;
                     select_coords.y2 = select.y1 + item_height + obj->radius + 1;
                     sgl_draw_fill_rect(surf, &select, &select_coords, obj->radius, textlist->item_selected_color, textlist->alpha);
                 }
                 else if (select.y2 >= (obj->area.y2 - obj->radius)) {
                     sgl_area_t select_coords = select;
                     select_coords.y1 = select.y1 - item_height - obj->radius - 1;
-                    select_coords.y2 = obj->coords.y2;
+                    select_coords.y2 = obj->coords.y2 - obj->border;
                     sgl_draw_fill_rect(surf, &select, &select_coords, obj->radius, textlist->item_selected_color, textlist->alpha);
                 }
             }
@@ -140,7 +140,7 @@ static void sgl_textlist_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
     break;
     
     case SGL_EVENT_RELEASED:
-        if (textlist->pos_y > 0) {
+        if (textlist->pos_y >= 0) {
             textlist->pos_y = 0;
             sgl_obj_set_dirty(obj);
         }
