@@ -355,6 +355,14 @@ void sgl_monitor_trace(sgl_surf_t *surf)
             last_tick = cur_tick;
         }
 
+#if (CONFIG_SGL_FBDEV_RUNTIME_ROTATION)
+        if ((monitor->coords.y2 + 1) == SGL_SCREEN_WIDTH || (monitor->coords.x2 + 1) == SGL_SCREEN_HEIGHT) {
+            sgl_obj_delete(monitor);
+            monitor = NULL;
+            return;
+        } 
+#endif
+
         /* update monitor page */
         evt.type = SGL_EVENT_DRAW_MAIN;
         if (sgl_surf_area_is_overlap(surf, &monitor->area)) {

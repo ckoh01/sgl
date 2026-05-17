@@ -449,6 +449,23 @@ void sgl_event_pos_input(int16_t x, int16_t y, bool flag)
 #else
     #error "CONFIG_SGL_FBDEV_ROTATION is invalid rotation value (only 0/90/180/270 supported)"
 #endif
+#elif (CONFIG_SGL_FBDEV_RUNTIME_ROTATION)
+    switch (sgl_system.angle) {
+    case 90:
+        pos_x = sgl_min(SGL_SCREEN_WIDTH - y, SGL_SCREEN_WIDTH - 1);
+        pos_y = sgl_min(x, SGL_SCREEN_HEIGHT - 1);
+        break;
+    case 180:
+        pos_x = SGL_SCREEN_WIDTH - x - 1;
+        pos_y = SGL_SCREEN_HEIGHT - y - 1;
+        break;
+    case 270:
+        pos_x = sgl_min(y, SGL_SCREEN_WIDTH - 1);
+        pos_y = sgl_min(SGL_SCREEN_HEIGHT - x, SGL_SCREEN_HEIGHT - 1);
+        break;
+    default:
+        break;
+    }
 #endif //!CONFIG_SGL_FBDEV_ROTATION
 
     if (flag) {

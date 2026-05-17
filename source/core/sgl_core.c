@@ -810,6 +810,8 @@ void sgl_fbdev_set_angle(uint16_t angle)
 
     if (cur_status != new_status) {
         sgl_swap(&sgl_system.fbdev.fbinfo.xres, &sgl_system.fbdev.fbinfo.yres);
+        sgl_swap(&sgl_system.fbdev.active->coords.x2, &sgl_system.fbdev.active->coords.y2);
+        sgl_swap(&sgl_system.fbdev.active->area.x2, &sgl_system.fbdev.active->area.y2);
     }
 
     sgl_system.angle = angle;
@@ -1869,8 +1871,11 @@ static inline void sgl_draw_task(sgl_fbdev_t *fbdev, sgl_area_t *dirty_area, uin
         surf->dirty = dirty;
 
 #if (CONFIG_SGL_FBDEV_RUNTIME_ROTATION)
+        /* if the dirty area is out of screen, skip it */
         sgl_area_t screen = { .x1 = 0, .y1 = 0, .x2 = SGL_SCREEN_WIDTH - 1, .y2 = SGL_SCREEN_HEIGHT - 1 };
-        sgl_area_selfclip(dirty, &screen);
+        if (!sgl_area_selfclip(dirty, &screen)) {
+            continue;
+        }
 #endif
 
         /* check dirty area, ensure it is valid */
