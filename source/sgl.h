@@ -64,6 +64,7 @@
 #include "widgets/chart/sgl_chart.h"
 #include "widgets/textlist/sgl_textlist.h"
 #include "widgets/qrcode/sgl_qrcode.h"
+#include "widgets/spectrum/sgl_spectrum.h"
 #include "components/timer/sgl_timer.h"
 
 #endif // __SGL_H__
