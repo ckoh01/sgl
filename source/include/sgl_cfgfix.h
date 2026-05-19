@@ -114,8 +114,8 @@ extern "C" {
 
 #ifndef CONFIG_SGL_HEAP_MEMORY_SIZE
 #   define CONFIG_SGL_HEAP_MEMORY_SIZE                             (10240)  /* GUI heap size (bytes) */
-#   ifndef CONFIG_SGL_FL_INDEX_MAX
-#       define CONFIG_SGL_FL_INDEX_MAX                             (20)  /* Max font link index */
+#   ifndef CONFIG_SGL_TLSF_INDEX_MAX
+#       define CONFIG_SGL_TLSF_INDEX_MAX                           (13)  /* Max font link index */
 #   endif
 #endif
 
