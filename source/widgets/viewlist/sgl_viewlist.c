@@ -66,7 +66,6 @@ static void sgl_viewlist_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
     case SGL_EVENT_MOVE_DOWN:
         if(viewlist->pos_y < viewlist->item_height / 2) {
             viewlist->pos_y += evt->distance;
-            SGL_LOG_INFO("viewlist move down = distance = %d", evt->distance);
             sgl_obj_for_each_child(child, obj) {
                 sgl_obj_set_pos_y(child, sgl_obj_get_pos_y(child) + evt->distance);
             }
@@ -75,18 +74,18 @@ static void sgl_viewlist_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
         break;
 
     case SGL_EVENT_RELEASED:
-        if (viewlist->pos_y > 0) {
+        diff = viewlist->item_num * (viewlist->item_height + viewlist->margin_y);
+        if (viewlist->pos_y >= 0) {
             viewlist->pos_y = 0;
             pos_y = viewlist->pos_y + viewlist->margin_y + obj->border;
+
             sgl_obj_for_each_child(child, obj) {
                 sgl_obj_set_pos_y(child, pos_y);
                 pos_y += viewlist->item_height + viewlist->margin_y;
             }
             sgl_obj_set_dirty(obj);
         }
-
-        diff = viewlist->item_num * (viewlist->item_height + viewlist->margin_y);
-        if((viewlist->pos_y + diff) < list_h) {
+        else if((viewlist->pos_y + diff) < list_h) {
             viewlist->pos_y = list_h - diff;
             pos_y = viewlist->pos_y - 2 * viewlist->margin_y + obj->border;
             sgl_obj_for_each_child(child, obj) {
