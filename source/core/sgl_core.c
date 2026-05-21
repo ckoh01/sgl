@@ -1653,7 +1653,7 @@ void sgl_obj_set_layout(sgl_obj_t *obj, sgl_layout_desc_t *desc)
         sgl_split_len_avg((obj->coords.y2 - obj->coords.y1 + 1 - obj->border * 2 - desc->top_space - desc->bottom_space), 
                             child_num, desc->row_space, child_span_y
                          );
-        child_pos_y = obj->coords.x1 + obj->border + desc->top_space;
+        child_pos_y = obj->coords.y1 + obj->border + desc->top_space;
 
         sgl_obj_for_each_child(child, obj) {
             child->coords.x1 = obj->coords.x1 + desc->left_space;
