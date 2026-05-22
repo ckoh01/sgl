@@ -88,10 +88,10 @@ static void sgl_viewlist_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
         }
         else if((viewlist->pos_y + diff) < list_h) {
             viewlist->pos_y = list_h - diff + viewlist->margin_y;
-            pos_y = viewlist->pos_y - 2 * viewlist->margin_y + obj->border;
+            pos_y = viewlist->pos_y - 2 * viewlist->margin_y + obj->border + viewlist->margin_y;
             sgl_obj_for_each_child(child, obj) {
                 sgl_obj_set_pos_y(child, pos_y);
-                pos_y += viewlist->item_height + viewlist->margin_y;
+                pos_y += (viewlist->item_height + viewlist->margin_y);
             }
             sgl_obj_set_dirty(obj);
         }
