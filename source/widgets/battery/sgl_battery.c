@@ -29,8 +29,6 @@
 #include <sgl_mm.h>
 #include <sgl_theme.h>
 #include <sgl_cfgfix.h>
-#include <string.h>
-#include <stdio.h>
 #include "sgl_battery.h"
 
 
@@ -139,7 +137,6 @@ static void sgl_battery_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event
             battery->bg_color, SGL_ALPHA_MAX);
         
         if (level > 0) {
-            int16_t cell_gap = 2;
             int16_t active_cells = (level * battery->num_cells + 99) / 100;
             if (active_cells > battery->num_cells) active_cells = battery->num_cells;
             
@@ -286,11 +283,11 @@ static void sgl_battery_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event
             line.x1 = px5; line.y1 = py5; line.x2 = px6; line.y2 = py6; sgl_draw_line(surf, &obj->area, &line);
             line.x1 = px6; line.y1 = py6; line.x2 = px1; line.y2 = py1; sgl_draw_line(surf, &obj->area, &line);
         }
-        
+
         if (battery->show_percentage && battery->font) {
             char text[8];
-            sprintf(text, "%d%%", level);
-            
+            sgl_sprintf(text, "%d%%", level);
+
             sgl_area_t text_area = {
                 .x1 = x1,
                 .y1 = y1,
@@ -345,7 +342,7 @@ sgl_obj_t* sgl_battery_create(sgl_obj_t* parent)
     battery->bg_color = sgl_rgb(30, 30, 30);
     battery->num_cells = 6;
     battery->direction = SGL_BATTERY_DIR_HORIZONTAL;
-    battery->cap_size = 8;
+    battery->cap_size = 4;
     battery->cap_pos = SGL_BATTERY_CAP_RIGHT;
     battery->charging = 0;
     battery->charging_color = sgl_rgb(255, 255, 0);
