@@ -166,21 +166,19 @@ void sgl_spectrum_set_bar_value(sgl_obj_t *obj, uint16_t index, uint16_t value)
     if (area.y1 > area.y2) {
         sgl_swap(&area.y1, &area.y2);
     }
+
     area.y1 -= (spectrum->bar_hat_height + 1);
-    sgl_update_area(&area);
     spectrum->bar_value[index] = value;
 
     if (spectrum->bar_mode & SGL_SPECTRUM_MODE_HAT_FLAG) {
         hat_y2 = obj->coords.y2 - spectrum->bar_hat[index];
-        hat_y1 = hat_y2 - spectrum->bar_hat_height + 1;
-
-        if (area.y1 > hat_y1 || area.y2 < hat_y2) {
-            area.y1 = sgl_min(hat_y1, area.y1);
-            area.y2 = sgl_max(hat_y2, area.y2);
-            sgl_update_area(&area);
-        }
-
+        hat_y1 = area.y1 - spectrum->bar_hat_height + 1;
+        area.y1 = sgl_min(hat_y2, hat_y1);
+        sgl_update_area(&area);
         spectrum->bar_hat[index] = sgl_max(value, spectrum->bar_hat[index] - spectrum->bar_hat_height);
+    }
+    else {
+        sgl_update_area(&area);
     }
 }
 
