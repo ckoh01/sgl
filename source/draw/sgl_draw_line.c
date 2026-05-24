@@ -118,16 +118,15 @@ void draw_line_fill_slanted(sgl_surf_t *surf, sgl_area_t *area, int16_t x1, int1
     const int64_t bax = (int64_t)x2 - x1, bay = (int64_t)y2 - y1;
     const int64_t b_sqd = bax * bax + bay * bay;
     const int64_t inv_b_sqd = (1LL << 32) / b_sqd;
-    const int16_t thick_half = (thickness >> 2);
-    const int32_t inner_limit = (thick_half - 1) << 8;
-    const int32_t outer_limit = thick_half << 8;
+    const int32_t inner_limit = (thickness - 1) << 8;
+    const int32_t outer_limit = thickness << 8;
 
     sgl_area_t clip = SGL_AREA_MAX;
     sgl_area_t c_rect = {
-        .x1 = (x1 < x2 ? x1 : x2) - thick_half,
-        .x2 = (x1 > x2 ? x1 : x2) + thick_half,
-        .y1 = (y1 < y2 ? y1 : y2) - thick_half,
-        .y2 = (y1 > y2 ? y1 : y2) + thick_half,
+        .x1 = (x1 < x2 ? x1 : x2) - thickness,
+        .x2 = (x1 > x2 ? x1 : x2) + thickness,
+        .y1 = (y1 < y2 ? y1 : y2) - thickness,
+        .y2 = (y1 > y2 ? y1 : y2) + thickness,
     };
 
     sgl_surf_clip_area_return(surf, area, &clip);
@@ -173,6 +172,134 @@ void draw_line_fill_slanted(sgl_surf_t *surf, sgl_area_t *area, int16_t x1, int1
 
 
 /**
+ * @brief Draw a dashed line using Bresenham's algorithm.
+ * 
+ * @param surf   Pointer to the surface structure.
+ * @param area   Pointer to the area structure defining the valid drawing region.
+ * @param x1     Start X-coordinate.
+ * @param y1     Start Y-coordinate.
+ * @param x2     End X-coordinate.
+ * @param y2     End Y-coordinate.
+ * @param gap    Length of the dash and the gap in pixels. Must be > 0.
+ * @param color  Color of the line.
+ * @return none
+ * @note: This function is Non-anti-aliased!!!!
+ */
+void sgl_draw_dashed_line_noaa(sgl_surf_t *surf, sgl_area_t *area, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t gap, sgl_color_t color)
+{
+    sgl_area_t clip = SGL_AREA_MAX;
+    sgl_surf_clip_area_return(surf, area, &clip);
+
+    int16_t dx = sgl_abs(x2 - x1);
+    int16_t dy = sgl_abs(y2 - y1);
+    int16_t sx = (x1 < x2) ? 1 : -1;
+    int16_t sy = (y1 < y2) ? 1 : -1;
+    int16_t err = dx - dy;
+    int16_t e2;
+    int16_t dash_len = 0;
+
+    if (gap <= 0) gap = 1;
+
+    while (1) {
+        if (dash_len < gap) {
+            if (x1 >= clip.x1 && x1 <= clip.x2 && y1 >= clip.y1 && y1 <= clip.y2) {
+                sgl_color_t *buf = sgl_surf_get_buf(surf, x1 - surf->x1, y1 - surf->y1);
+                *buf = color;
+            }
+        }
+
+        dash_len++;
+        if (dash_len >= 2 * gap) {
+            dash_len = 0;
+        }
+
+        if (x1 == x2 && y1 == y2) {
+            break;
+        }
+
+        e2 = 2 * err;
+        if (e2 > -dy) {
+            err -= dy;
+            x1 += sx;
+        }
+        if (e2 < dx) {
+            err += dx;
+            y1 += sy;
+        }
+    }
+}
+
+/**
+ * @brief Fast line drawing with customizable width and alpha blending
+ * @param surf   Pointer to the target surface
+ * @param area   Clipping area for rendering
+ * @param x0     Start X-coordinate.
+ * @param y0     Start Y-coordinate.
+ * @param x1     End X-coordinate.
+ * @param y1     End Y-coordinate.
+ * @param color  Line color
+ * @param width  Line width in pixels
+ * @param alpha  Alpha transparency value
+ * @note: This function is Non-anti-aliased!!!!
+ */
+void sgl_draw_line_noaa(sgl_surf_t *surf, sgl_area_t *area, int16_t x1, int16_t y1, int16_t x2, int16_t y2, sgl_color_t color, uint8_t width, uint8_t alpha)
+{
+    if (unlikely(width == 0 || alpha == 0)) {
+        return;
+    }
+
+    if (x1 == x2) {
+        sgl_draw_fill_vline(surf, area, x1, y1, y2, width, color, alpha);
+        return;
+    }
+    if (y1 == y2) {
+        sgl_draw_fill_hline(surf, area, y1, x1, x2, width, color, alpha);
+        return;
+    }
+
+    sgl_area_t clip = {
+        .x1 = surf->x1,
+        .y1 = surf->y1,
+        .x2 = surf->x2,
+        .y2 = surf->y2,
+    };
+
+    if (!sgl_area_selfclip(&clip, area)) {
+        return;
+    }
+
+    const int16_t dx = sgl_abs(x2 - x1);
+    const int16_t dy = sgl_abs(y2 - y1);
+    const int16_t sx = (x1 < x2) ? 1 : -1;
+    const int16_t sy = (y1 < y2) ? 1 : -1;
+    int16_t err = dx - dy;
+
+    while (1) {
+        if (x1 >= clip.x1 && x1 <= clip.x2 && y1 >= clip.y1 && y1 <= clip.y2) {
+            sgl_color_t *buf = sgl_surf_get_buf(surf, x1 - surf->x1, y1 - surf->y1);
+            for (int i = 0; i < width; i++) {
+                *buf++ = color;
+            }
+        }
+
+        if (x1 == x2 && y1 == y2) {
+            break;
+        }
+
+        int16_t e2 = err << 1;
+        if (e2 > -dy) {
+            err -= dy;
+            x1 += sx;
+        }
+        if (e2 < dx) {
+            err += dx;
+            y1 += sy;
+        }
+    }
+}
+
+
+/**
  * @brief draw a line
  * @param surf surface
  * @param area area that contains the line
@@ -182,10 +309,10 @@ void draw_line_fill_slanted(sgl_surf_t *surf, sgl_area_t *area, int16_t x1, int1
 void sgl_draw_line(sgl_surf_t *surf, sgl_area_t *area, sgl_draw_line_t *desc)
 {
     if (desc->x1 == desc->x2) {
-        sgl_draw_fill_vline(surf, area, desc->x1, desc->y1, desc->y2, desc->width / 2, desc->color, desc->alpha);
+        sgl_draw_fill_vline(surf, area, desc->x1, desc->y1, desc->y2, desc->width, desc->color, desc->alpha);
     }
     else if (desc->y1 == desc->y2) {
-        sgl_draw_fill_hline(surf, area, desc->y1, desc->x1, desc->x2, desc->width / 2, desc->color, desc->alpha);
+        sgl_draw_fill_hline(surf, area, desc->y1, desc->x1, desc->x2, desc->width, desc->color, desc->alpha);
     }
     else {
         draw_line_fill_slanted(surf, area, desc->x1, desc->y1, desc->x2, desc->y2, desc->width, desc->color, desc->alpha);

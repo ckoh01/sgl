@@ -271,6 +271,6 @@ void sgl_line_set_dash_pattern(sgl_obj_t *obj, uint16_t dash_len, uint16_t gap_l
 void sgl_line_set_width(sgl_obj_t *obj, uint8_t width)
 {
 	SGL_ASSERT(obj != NULL);
-	obj->border = width << 1;
+	obj->border = width;
 	sgl_obj_set_dirty(obj);
 }
