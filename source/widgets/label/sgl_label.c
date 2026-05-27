@@ -191,7 +191,7 @@ void sgl_label_set_text_buffer(sgl_obj_t *obj, char *buf, uint16_t buf_size)
     label->text = buf;
     label->dynamic = 0;
     label->text_capacity = buf_size;
-    memset(buf, 0, buf_size);
+    buf[0] = '\0';
 }
 
 /**
@@ -252,7 +252,7 @@ void sgl_label_set_text_fmt_dynamic(sgl_obj_t* obj, const char *fmt, ...)
             SGL_LOG_ERROR("sgl_label_set_text_fmt: alloc failed");
             return;
         }
-        memset(text, 0, cap);
+        text[0] = '\0';
         label->text = text;
         label->dynamic = 1;
         label->text_capacity = cap;
