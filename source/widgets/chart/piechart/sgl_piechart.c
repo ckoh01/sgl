@@ -249,7 +249,7 @@ static void sgl_piechart_draw_legend(sgl_surf_t *surf, sgl_obj_t *obj, sgl_piech
     /* draw legend background & border */
     if (pie->option_bits.legend_bg_enable) {
         sgl_draw_fill_rect(surf, &obj->area, &clip, 0, pie->legend_bg_color, pie->legend_alpha);
-        sgl_draw_wireframe(surf, &obj->area, &clip, 1, pie->legend_border_color, pie->legend_alpha);
+        sgl_draw_wireframe(surf, &obj->area, &clip, 0, 1, pie->legend_border_color, pie->legend_alpha);
     }
 
     const int16_t rect_w = clip.x2 - clip.x1 + 1;
