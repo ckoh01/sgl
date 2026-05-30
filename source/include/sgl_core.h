@@ -43,11 +43,11 @@ extern "C" {
 /* define default animation tick ms */
 #define  SGL_SYSTEM_TICK_MS                CONFIG_SGL_SYSTICK_MS
 /* define dirty area trace color */
-#define SGL_DIRTY_AREA_TRACE_COLOR         CONFIG_SGL_DIRTY_AREA_TRACE_COLOR
+#define  SGL_DIRTY_AREA_TRACE_COLOR        CONFIG_SGL_DIRTY_AREA_TRACE_COLOR
 
 /* define focused color and border width */
-#define SGL_FOCUSED_COLOR                  CONFIG_SGL_FOCUSED_COLOR
-#define SGL_FOCUSED_WIDTH                  CONFIG_SGL_FOCUSED_WIDTH
+#define  SGL_FOCUSED_COLOR                 CONFIG_SGL_FOCUSED_COLOR
+#define  SGL_FOCUSED_WIDTH                 CONFIG_SGL_FOCUSED_WIDTH
 
 #if (CONFIG_SGL_DIRTY_AREA_NUM_MAX)
 #define  SGL_DIRTY_AREA_NUM_MAX            CONFIG_SGL_DIRTY_AREA_NUM_MAX

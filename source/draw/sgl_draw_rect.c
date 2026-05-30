@@ -32,6 +32,7 @@
  * @param surf point to surface
  * @param area area of rectangle that you want to draw
  * @param rect point to rectangle that you want to draw
+ * @param radius radius of round
  * @param width width of wireframe
  * @param color color of rectangle
  * @param alpha alpha of rectangle
