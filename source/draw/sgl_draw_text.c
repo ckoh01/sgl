@@ -66,24 +66,10 @@ static sgl_font_rle_t font_rle = {
  * @param len the bit length
  * @return the bits of a byte
  */
-static inline uint8_t get_bits(const uint8_t * in, uint32_t bit_pos, uint8_t len)
+static uint8_t get_bits(const uint8_t * in, uint32_t bit_pos, uint8_t len)
 {
-    uint8_t bit_mask;
-    switch(len) {
-        case 1:
-            bit_mask = 0x1;
-            break;
-        case 2:
-            bit_mask = 0x3;
-            break;
-        case 4:
-            bit_mask = 0xF;
-            break;
-        default:
-            bit_mask = (uint16_t)((uint16_t) 1 << len) - 1;
-    }
-
-    uint32_t byte_pos = bit_pos >> 3;
+    const uint8_t bit_mask = (uint16_t)((uint16_t) 1 << len) - 1;
+    const uint32_t byte_pos = bit_pos >> 3;
     bit_pos = bit_pos & 0x7;
 
     if(bit_pos + len >= 8) {

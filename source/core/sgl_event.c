@@ -716,6 +716,9 @@ void sgl_event_key_enter_pressed(void)
         if (key_ctx.editing == false) {
             key_ctx.editing = true;
         }
+        else {
+            event_type_callback(key_ctx.focused, SGL_EVENT_PRESSED);
+        }
     }
 }
 
