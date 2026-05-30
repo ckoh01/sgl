@@ -78,12 +78,20 @@ struct sgl_group_node {
  * @grp_head: focus group head
  * @grp_tail: focus group tail
  */
-static struct event_key_context {
+struct event_key_context {
     struct sgl_obj *focused;
     bool            editing;
     struct sgl_group_node *grp_head;
     struct sgl_group_node *grp_tail;
-} key_ctx;
+};
+
+/* key event context */
+struct event_key_context key_ctx = {
+    .focused = NULL,
+    .editing = false,
+    .grp_head = NULL,
+    .grp_tail = NULL
+};
 
 /**
  * @brief Initialize the event queue
@@ -608,6 +616,39 @@ void sgl_event_key_add_group(struct sgl_obj *obj)
 }
 
 /**
+ * @brief Remove object from key group
+ * @param obj The object to remove
+ * @return none
+ * @note if obj is NULL, remove all key group
+ */
+void sgl_event_key_remove_group(struct sgl_obj *obj)
+{
+    struct sgl_group_node *pos = NULL, *n;
+    /* if obj is NULL, remove all key group */
+    if (obj == NULL) {
+        for (pos = key_ctx.grp_head; pos != NULL; pos = n) {
+            n = pos->next;
+            sgl_free(pos);
+        }
+        key_ctx.grp_head = key_ctx.grp_tail = NULL;
+        key_ctx.focused = NULL;
+        return;
+    }
+
+    for (pos = key_ctx.grp_head; pos != key_ctx.grp_tail; pos = pos->next) {
+        if (pos->obj == obj) {
+            break;
+        }
+    }
+
+    if (pos != NULL) {
+        pos->prev->next = pos->next;
+        pos->next->prev = pos->prev;
+        sgl_free(pos);
+    }    
+}
+
+/**
  * @brief Physical keyboard event UP
  * @param none
  * @return none
@@ -615,7 +656,9 @@ void sgl_event_key_add_group(struct sgl_obj *obj)
  */
 void sgl_event_key_up(void)
 {
-    if (!key_ctx.focused) return;
+    if (!key_ctx.focused || !key_ctx.grp_head) {
+        return;
+    }
 
     if (key_ctx.editing) {
         event_type_callback(key_ctx.focused, SGL_EVENT_KEY_UP);
@@ -638,7 +681,9 @@ void sgl_event_key_up(void)
  */
 void sgl_event_key_down(void)
 {
-    if (!key_ctx.focused) return;
+    if (!key_ctx.focused || !key_ctx.grp_head) {
+        return;
+    }
 
     if (key_ctx.editing) {
         event_type_callback(key_ctx.focused, SGL_EVENT_KEY_DOWN);
@@ -661,7 +706,9 @@ void sgl_event_key_down(void)
  */
 void sgl_event_key_left(void)
 {
-    if (!key_ctx.focused) return;
+    if (!key_ctx.focused || !key_ctx.grp_head) {
+        return;
+    }
 
     if (key_ctx.editing) {
         event_type_callback(key_ctx.focused, SGL_EVENT_KEY_LEFT);
@@ -684,7 +731,9 @@ void sgl_event_key_left(void)
  */
 void sgl_event_key_right(void)
 {
-    if (!key_ctx.focused) return;
+    if (!key_ctx.focused || !key_ctx.grp_head) {
+        return;
+    }
 
     if (key_ctx.editing) {
         event_type_callback(key_ctx.focused, SGL_EVENT_KEY_RIGHT);
@@ -707,7 +756,9 @@ void sgl_event_key_right(void)
  */
 void sgl_event_key_enter_pressed(void)
 {
-    if (!key_ctx.focused) return;
+    if (!key_ctx.focused || !key_ctx.grp_head) {
+        return;
+    }
 
     if (!sgl_obj_is_editable(key_ctx.focused)) {
         event_type_callback(key_ctx.focused, SGL_EVENT_PRESSED);
@@ -730,7 +781,9 @@ void sgl_event_key_enter_pressed(void)
  */
 void sgl_event_key_enter_released(void)
 {
-    if (!key_ctx.focused) return;
+    if (!key_ctx.focused || !key_ctx.grp_head) {
+        return;
+    }
     event_type_callback(key_ctx.focused, SGL_EVENT_RELEASED);
 }
 
@@ -742,7 +795,9 @@ void sgl_event_key_enter_released(void)
  */
 void sgl_event_key_esc(void)
 {
-    if (!key_ctx.focused) return;
+    if (!key_ctx.focused || !key_ctx.grp_head) {
+        return;
+    }
 
     if (key_ctx.editing) {
         key_ctx.editing = false;

@@ -266,6 +266,14 @@ void sgl_event_pos_input(int16_t x, int16_t y, bool flag);
 void sgl_event_key_add_group(struct sgl_obj *obj);
 
 /**
+ * @brief Remove object from key group
+ * @param obj The object to remove
+ * @return none
+ * @note if obj is NULL, remove all key group
+ */
+void sgl_event_key_remove_group(struct sgl_obj *obj);
+
+/**
  * @brief Physical keyboard event UP
  * @param none
  * @return none
