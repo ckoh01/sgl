@@ -29,7 +29,6 @@
 #include <string.h>
 #include <sgl_mm.h>
 
-
 /* define event queue size */
 #define SGL_EVENT_QUEUE_SIZE          (CONFIG_SGL_EVENT_QUEUE_SIZE)
 #define SGL_EVENT_QUEUE_SIZE_MASK     (SGL_EVENT_QUEUE_SIZE - 1)
@@ -47,7 +46,6 @@ typedef struct event_queue {
     uint16_t    tail;
 } event_queue_t;
 
-
 /**
  * @brief event context struct
  * @last_click: last click object which may be lost event
@@ -58,13 +56,34 @@ static struct event_context {
     struct sgl_obj *last_click;
     struct sgl_obj *last_motion;
     sgl_event_pos_t last_touch;
-#if (CONFIG_SGL_EVENT_PHY_KEY)
-    struct sgl_obj *focused;
-    bool            focused_selected;
-#endif
     event_queue_t   evtq;
 } evt_ctx;
 
+/**
+ * @brief focus group struct
+ * @obj: focus group object
+ * @prev: previous node
+ * @next: next node
+ */
+struct sgl_group_node {
+    struct sgl_obj *obj;
+    struct sgl_group_node *prev;
+    struct sgl_group_node *next;
+};
+
+/**
+ * @brief key event context struct
+ * @focused: focused object
+ * @editing: whether the object is editing
+ * @grp_head: focus group head
+ * @grp_tail: focus group tail
+ */
+static struct event_key_context {
+    struct sgl_obj *focused;
+    bool            editing;
+    struct sgl_group_node *grp_head;
+    struct sgl_group_node *grp_tail;
+} key_ctx;
 
 /**
  * @brief Initialize the event queue
@@ -84,7 +103,6 @@ int sgl_event_queue_init(void)
     return 0;
 }
 
-
 /**
  * @brief Check whether the event queue is empty
  * @param none
@@ -94,7 +112,6 @@ static inline bool sgl_event_queue_is_empty(void)
 {
     return evt_ctx.evtq.head == evt_ctx.evtq.tail;
 }
-
 
 /**
  * @brief Check whether the event queue is full
@@ -106,7 +123,6 @@ static inline bool sgl_event_queue_is_full(void)
     uint32_t next_head = (evt_ctx.evtq.head + 1) & SGL_EVENT_QUEUE_SIZE_MASK;
     return next_head == evt_ctx.evtq.tail;
 }
-
 
 /**
  * @brief Push an event into the event queue
@@ -124,7 +140,6 @@ void sgl_event_queue_push(sgl_event_t event)
     evt_ctx.evtq.head = ((evt_ctx.evtq.head + 1) & SGL_EVENT_QUEUE_SIZE_MASK);
 }
 
-
 /**
  * @brief Pop an event from the event queue
  * @param out_event The event to be popped
@@ -140,7 +155,6 @@ static inline int sgl_event_queue_pop(sgl_event_t* out_event)
     evt_ctx.evtq.tail = ((evt_ctx.evtq.tail + 1) & SGL_EVENT_QUEUE_SIZE_MASK);
     return 0;
 }
-
 
 /**
  * @brief Check whether the position is focus on the object
@@ -189,7 +203,6 @@ static bool pos_is_focus_on_obj(sgl_event_pos_t *pos, sgl_rect_t *rect, int16_t 
     return false;
 }
 
-
 /**
  * @brief check whether the position is clicked on the object
  * @param pos The position to be clicked
@@ -235,7 +248,6 @@ static struct sgl_obj* click_detect_object(sgl_event_pos_t *pos)
     return find;
 }
 
-
 /**
  * @brief Handle the position event
  * @param pos The position to be handled
@@ -256,7 +268,6 @@ void sgl_event_send_pos(sgl_event_pos_t pos, sgl_event_type_t type)
 
     sgl_event_queue_push(event);
 }
-
 
 /**
  * @brief get information of motion event type
@@ -292,7 +303,6 @@ static void sgl_get_move_info(sgl_event_t *evt)
     evt_ctx.last_touch = evt->pos;
 }
 
-
 /**
  * @brief Callback function for event
  * @param obj The object that triggered the event
@@ -306,7 +316,6 @@ static inline void event_callback(sgl_obj_t *obj, sgl_event_t *evt)
     evt->obj = obj;
     obj->construct_fn(NULL, obj, evt);
 }
-
 
 /**
  * @brief Inject motion event to the object
@@ -327,7 +336,6 @@ static inline void event_inject_motion(sgl_obj_t *obj, sgl_event_t *evt)
         obj->event_fn(evt);
     }
 }
-
 
 /**
  * @brief All event task in SGL, this function will traverse all elements in the event queue, 
@@ -405,7 +413,6 @@ void sgl_event_task(void)
         }
     }
 }
-
 
 /**
  * @brief Touch event read, this function will be called by user
@@ -508,20 +515,96 @@ void sgl_event_pos_input(int16_t x, int16_t y, bool flag)
     }
 }
 
-#if (CONFIG_SGL_EVENT_PHY_KEY)
+/**
+ * @brief Set focus to object
+ * @param obj The object to set focus
+ * @param flag The flag to set focus
+ * @return none
+ */
+static void event_set_focus(struct sgl_obj *obj, bool flag)
+{
+    if (obj->focus != flag) {
+        obj->focus = flag;
+        sgl_obj_set_dirty(obj);
+    }
+}
+
 /**
  * @brief Callback function for event type
  * @param obj The object that triggered the event
  * @param type The type of the event
  * @return none
  */
-static void event_type_callback(sgl_obj_t *obj, sgl_event_type_t type)
+static void event_type_callback(struct sgl_obj *obj, sgl_event_type_t type)
 {
     sgl_event_t evt;
     evt.param = obj->event_data;
     evt.type = type;
     evt.obj = obj;
     obj->construct_fn(NULL, obj, &evt);
+}
+
+/**
+ * @brief Get focused object
+ * @return The focused object
+ */
+static struct sgl_group_node *get_focused_node(void)
+{
+    if (!key_ctx.grp_head || !key_ctx.focused) return NULL;
+
+    struct sgl_group_node *curr = key_ctx.grp_head;
+    do {
+        if (curr->obj == key_ctx.focused) {
+            return curr;
+        }
+        curr = curr->next;
+    } while (curr != key_ctx.grp_head);
+
+    return NULL;
+}
+
+/**
+ * @brief Add object to key group
+ * @param obj The object to add
+ * @return none
+ * @warning you should check the return value of sgl_event_key_add_group
+ */
+void sgl_event_key_add_group(struct sgl_obj *obj)
+{
+    if (!obj) {
+        return;
+    }
+
+    struct sgl_group_node *new_node = (struct sgl_group_node *)sgl_malloc(sizeof(struct sgl_group_node));
+    if (!new_node) {
+        SGL_LOG_ERROR("sgl_event_key_add_group: alloc group node failed");
+        return;
+    }
+
+    new_node->obj = obj;
+    if (key_ctx.grp_head == NULL) {
+        key_ctx.grp_head = new_node;
+        key_ctx.grp_tail = new_node;
+
+        new_node->next = new_node;
+        new_node->prev = new_node;
+    }
+    else {
+        struct sgl_group_node *head = key_ctx.grp_head;
+        struct sgl_group_node *tail = key_ctx.grp_tail;
+
+        new_node->prev = tail;
+        new_node->next = head;
+        tail->next = new_node;
+        head->prev = new_node;
+
+        key_ctx.grp_tail = new_node;
+    }
+
+    if (key_ctx.focused == NULL) {
+        key_ctx.focused = obj;
+        key_ctx.editing = false;
+    }
 }
 
 /**
@@ -532,10 +615,19 @@ static void event_type_callback(sgl_obj_t *obj, sgl_event_type_t type)
  */
 void sgl_event_key_up(void)
 {
-    if (!evt_ctx.focused || !evt_ctx.focused_selected) {
-        return;
+    if (!key_ctx.focused) return;
+
+    if (key_ctx.editing) {
+        event_type_callback(key_ctx.focused, SGL_EVENT_KEY_UP);
     }
-    event_type_callback(evt_ctx.focused, SGL_EVENT_KEY_UP);
+    else {
+        struct sgl_group_node *curr_node = get_focused_node();
+        if (curr_node) {
+            event_set_focus(curr_node->obj, false);
+            key_ctx.focused = curr_node->prev->obj;
+            event_set_focus(key_ctx.focused, true);
+        }
+    }
 }
 
 /**
@@ -546,10 +638,19 @@ void sgl_event_key_up(void)
  */
 void sgl_event_key_down(void)
 {
-    if (!evt_ctx.focused || !evt_ctx.focused_selected) {
-        return;
+    if (!key_ctx.focused) return;
+
+    if (key_ctx.editing) {
+        event_type_callback(key_ctx.focused, SGL_EVENT_KEY_DOWN);
     }
-    event_type_callback(evt_ctx.focused, SGL_EVENT_KEY_DOWN);
+    else {
+        struct sgl_group_node *curr_node = get_focused_node();
+        if (curr_node) {
+            event_set_focus(curr_node->obj, false);
+            key_ctx.focused = curr_node->next->obj;
+            event_set_focus(key_ctx.focused, true);
+        }
+    }
 }
 
 /**
@@ -560,32 +661,19 @@ void sgl_event_key_down(void)
  */
 void sgl_event_key_left(void)
 {
-    sgl_obj_t *obj = evt_ctx.focused;
-    if (!obj) {
-        evt_ctx.focused = sgl_screen_act();
-        return;
-    }
+    if (!key_ctx.focused) return;
 
-    if (evt_ctx.focused_selected) {
-        event_type_callback(evt_ctx.focused, SGL_EVENT_KEY_LEFT);
-        return;
-    }
-
-    event_type_callback(evt_ctx.focused, SGL_EVENT_UNFOCUSED);
-    if (sgl_obj_has_child(obj)) {
-        evt_ctx.focused = sgl_obj_get_child(obj);
+    if (key_ctx.editing) {
+        event_type_callback(key_ctx.focused, SGL_EVENT_KEY_LEFT);
     }
     else {
-        sgl_obj_t *prev = sgl_obj_get_prev_sibling(obj);
-        if (prev) {
-            evt_ctx.focused = prev;
-        }
-        else {
-            evt_ctx.focused = sgl_obj_get_parent(obj);
+        struct sgl_group_node *curr_node = get_focused_node();
+        if (curr_node) {
+            event_set_focus(curr_node->obj, false);
+            key_ctx.focused = curr_node->prev->obj;
+            event_set_focus(key_ctx.focused, true);
         }
     }
-
-    event_type_callback(evt_ctx.focused, SGL_EVENT_FOCUSED);
 }
 
 /**
@@ -596,54 +684,51 @@ void sgl_event_key_left(void)
  */
 void sgl_event_key_right(void)
 {
-    sgl_obj_t *obj = evt_ctx.focused;
-    if (!obj) {
-        evt_ctx.focused = sgl_screen_act();
-        return;
-    }
+    if (!key_ctx.focused) return;
 
-    if (evt_ctx.focused_selected) {
-        event_type_callback(evt_ctx.focused, SGL_EVENT_KEY_RIGHT);
-        return;
-    }
-
-    event_type_callback(evt_ctx.focused, SGL_EVENT_UNFOCUSED);
-    if (sgl_obj_has_child(obj)) {
-        evt_ctx.focused = sgl_obj_get_child(obj);
+    if (key_ctx.editing) {
+        event_type_callback(key_ctx.focused, SGL_EVENT_KEY_RIGHT);
     }
     else {
-        sgl_obj_t *next = sgl_obj_get_next_sibling(obj);
-        if (next) {
-            evt_ctx.focused = next;
-        }
-        else {
-            evt_ctx.focused = sgl_obj_get_parent(obj);
+        struct sgl_group_node *curr_node = get_focused_node();
+        if (curr_node) {
+            event_set_focus(curr_node->obj, false);
+            key_ctx.focused = curr_node->next->obj;
+            event_set_focus(key_ctx.focused, true);
         }
     }
-    event_type_callback(evt_ctx.focused, SGL_EVENT_FOCUSED);
 }
 
 /**
- * @brief Physical keyboard event ENTER
+ * @brief Physical keyboard event ENTER pressed
  * @param none
  * @return none
  * @note: you can call it in physical keyboard event handler function
  */
-void sgl_event_key_enter(void)
+void sgl_event_key_enter_pressed(void)
 {
-    sgl_obj_t *obj = evt_ctx.focused;
-    if (!obj) {
-        evt_ctx.focused = sgl_screen_act();
-        return;
-    }
+    if (!key_ctx.focused) return;
 
-    if (evt_ctx.focused_selected) {
-        event_type_callback(evt_ctx.focused, SGL_EVENT_KEY_ENTER);
+    if (!sgl_obj_is_editable(key_ctx.focused)) {
+        event_type_callback(key_ctx.focused, SGL_EVENT_PRESSED);
     }
     else {
-        evt_ctx.focused_selected = true;
-        event_type_callback(evt_ctx.focused, SGL_EVENT_FOCUSED);
+        if (key_ctx.editing == false) {
+            key_ctx.editing = true;
+        }
     }
+}
+
+/**
+ * @brief Physical keyboard event ENTER released
+ * @param none
+ * @return none
+ * @note: you can call it in physical keyboard event handler function
+ */
+void sgl_event_key_enter_released(void)
+{
+    if (!key_ctx.focused) return;
+    event_type_callback(key_ctx.focused, SGL_EVENT_RELEASED);
 }
 
 /**
@@ -654,22 +739,10 @@ void sgl_event_key_enter(void)
  */
 void sgl_event_key_esc(void)
 {
-    sgl_obj_t *obj = evt_ctx.focused;
-    if (!obj) {
-        return;
-    }
+    if (!key_ctx.focused) return;
 
-    if (evt_ctx.focused_selected) {
-        event_type_callback(evt_ctx.focused, SGL_EVENT_KEY_ESC);
-        evt_ctx.focused_selected = false;
-    }
-    else {
-        sgl_obj_t *parent = sgl_obj_get_parent(obj);
-        if (parent) {
-            evt_ctx.focused = parent;
-        }
-        event_type_callback(evt_ctx.focused, SGL_EVENT_FOCUSED);
+    if (key_ctx.editing) {
+        key_ctx.editing = false;
+        event_type_callback(key_ctx.focused, SGL_EVENT_KEY_ESC);
     }
 }
-
-#endif 

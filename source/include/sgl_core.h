@@ -32,11 +32,9 @@
 #include <sgl_list.h>
 #include <sgl_event.h>
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 /* the maximum depth of object*/
 #define  SGL_OBJ_DEPTH_MAX                 (16)
@@ -47,13 +45,16 @@ extern "C" {
 /* define dirty area trace color */
 #define SGL_DIRTY_AREA_TRACE_COLOR         CONFIG_SGL_DIRTY_AREA_TRACE_COLOR
 
+/* define focused color and border width */
+#define SGL_FOCUSED_COLOR                  CONFIG_SGL_FOCUSED_COLOR
+#define SGL_FOCUSED_WIDTH                  CONFIG_SGL_FOCUSED_WIDTH
+
 #if (CONFIG_SGL_DIRTY_AREA_NUM_MAX)
 #define  SGL_DIRTY_AREA_NUM_MAX            CONFIG_SGL_DIRTY_AREA_NUM_MAX
 #endif
 
 /* the ASCII offset of fonts */
 #define  SGL_TEXT_ASCII_OFFSET             (32)
-
 
 /**
 * @brief This enumeration type defines the alignment of controls in sgl,
@@ -79,7 +80,6 @@ typedef enum sgl_align_type {
 
 } sgl_align_type_t;
 
-
 /**
 * @brief This enumeration type defines the layout of controls in sgl,
 *        i.e. coordinate positions
@@ -91,7 +91,6 @@ typedef enum sgl_layout_type {
     SGL_LAYOUT_GRID = 3,
     SGL_LAYOUT_NUM = 4,
 } sgl_layout_type_t;
-
 
 /**
 * @brief This structure describes the layout of the control, including the layout type,
@@ -119,7 +118,6 @@ typedef struct sgl_layout_desc {
     int16_t bottom_space;
 } sgl_layout_desc_t;
 
-
 /**
 * @brief This structure is a structure that describes the position of the control,
 *        where x represents the position of the x coordinate, which is the row coordinate position,
@@ -133,7 +131,6 @@ typedef struct sgl_pos {
     int16_t y;
 } sgl_pos_t;
 
-
 /**
 * @brief This structure describes the size of the object, including width and height, in pixels
 *
@@ -144,7 +141,6 @@ typedef struct sgl_size {
     int16_t w;
     int16_t h;
 } sgl_size_t;
-
 
 /**
 * @brief This structure describes a rectangular region, where x1 and y1 represent the coordinates
@@ -165,7 +161,6 @@ typedef struct sgl_area {
 
 #define sgl_rect_t sgl_area_t
 
-
 /**
 * @brief This structure defines a 32 bit color bit field
 *
@@ -184,7 +179,6 @@ typedef union {
     uint32_t full;
 } sgl_color32_t;
 
-
 /**
 * @brief This structure defines a 24 bit color bit field
 *
@@ -200,7 +194,6 @@ typedef union {
     } ch;
     uint8_t full[3];
 } sgl_color24_t;
-
 
 /**
 * @brief This structure defines a 16 bit color bit field
@@ -219,7 +212,6 @@ typedef union {
     uint16_t full;
 } sgl_color16_t;
 
-
 /**
 * @brief This structure defines a 8 bit color bit field
 *
@@ -237,7 +229,6 @@ typedef union {
     uint8_t full;
 } sgl_color8_t;
 
-
 #if (CONFIG_SGL_FBDEV_PIXEL_DEPTH == 32)
 #define sgl_color_t sgl_color32_t
 #elif (CONFIG_SGL_FBDEV_PIXEL_DEPTH == 24)
@@ -247,7 +238,6 @@ typedef union {
 #elif (CONFIG_SGL_FBDEV_PIXEL_DEPTH == 8)
 #define sgl_color_t sgl_color8_t
 #endif
-
 
 /**
  * @brief This structure defines a surface, which is a rectangular area of the screen.
@@ -273,7 +263,6 @@ typedef struct sgl_surf {
     sgl_area_t   *dirty;
 } sgl_surf_t;
 
-
 /**
 * @brief This structure defines an image, with a bitmap pointing to the
 *        bitmap of the image, while specifying the width and height of the image
@@ -293,7 +282,6 @@ typedef struct sgl_pixmap {
     } bitmap;
 } sgl_pixmap_t;
 
-
 /**
  * @brief This structure defines an icon, with a bitmap pointing to the
  * @width: pixmap width
@@ -305,7 +293,6 @@ typedef struct sgl_icon_pixmap {
     uint16_t       height;
     const uint8_t *bitmap;
 } sgl_icon_pixmap_t;
-
 
 /**
 * @brief Font index table structure, used to describe the bitmap index positions of
@@ -336,7 +323,6 @@ typedef struct sgl_font_table {
 #endif
 } sgl_font_table_t;
 
-
 /**
  * @brief This structure defines a font unicode information, which is a collection of fonts
  * @offset: offset of unicode for unicode list
@@ -350,7 +336,6 @@ typedef struct sgl_font_unicode {
     const uint16_t *list;
     const uint32_t tab_offset;
 } sgl_font_unicode_t;
-
 
 /**
 * @brief A structure used to describe information about a font, Defining a font set requires
@@ -377,7 +362,6 @@ typedef struct sgl_font {
     const uint8_t   bpp;
     const uint8_t   compress;
 } sgl_font_t;
-
 
 /**
  * @brief Represents a fundamental UI object in the SGL (Simple Graphics Library) framework.
@@ -425,20 +409,19 @@ typedef struct sgl_obj {
     uint8_t         dirty : 1;
     uint8_t         hide : 1;
     uint8_t         needinit : 1;
-    uint8_t         layout : 2;
+    uint8_t         focus : 1;
+    uint8_t         editable : 1;
     uint8_t         clickable : 1;
     uint8_t         movable : 1;
     uint8_t         border;
     uint16_t        flexible : 1;
-    uint16_t        focus : 1;
     uint16_t        pressed : 1;
     uint16_t        page : 1;
-    uint16_t        radius : 12;
+    uint16_t        radius : 13;
 #if CONFIG_SGL_OBJ_USE_NAME
     const char      *name;
 #endif
 } sgl_obj_t;
-
 
 /**
  * @brief Represents a page object in the SGL graphics system.
@@ -462,7 +445,6 @@ typedef struct sgl_page {
     const sgl_pixmap_t *pixmap;
 } sgl_page_t;
 
-
 /**
  * @brief sgl framebuffer information struct
  * @buffer: framebuffer, this specify the memory address of the framebuffer
@@ -478,7 +460,6 @@ typedef struct sgl_fbinfo {
     int16_t    yres;
     void       (*flush_area)(sgl_area_t *area, sgl_color_t *src);
 } sgl_fbinfo_t;
-
 
 /**
  * @brief sgl framebuffer device struct
@@ -508,7 +489,6 @@ typedef struct sgl_fbdev {
 #endif
 } sgl_fbdev_t;
 
-
 /**
  * @brief sgl log print device struct
  * @logdev: log print callback function pointer
@@ -533,14 +513,12 @@ typedef struct sgl_system {
 #endif
 } sgl_system_t;
 
-
 /**
  * @brief for each child object of parent
  * @param _child: pointer of child object
  * @param parent: pointer of parent object
  */
 #define  sgl_obj_for_each_child(_child, parent)             for (_child = parent->child; _child != NULL; _child = _child->sibling)
-
 
 /**
  * @brief for each child object of parent safely
@@ -607,7 +585,6 @@ extern sgl_system_t sgl_system;
 extern const uint8_t sgl_opa4_table[16];
 extern const uint8_t sgl_opa2_table[4];
 
-
 /**
  * @brief register the frame buffer device
  * @param fbinfo the frame buffer device information
@@ -615,7 +592,6 @@ extern const uint8_t sgl_opa2_table[4];
  * @note you must check the result of this function
  */
 int sgl_fbdev_register(sgl_fbinfo_t *fbinfo);
-
 
 /**
  * @brief register the frame buffer device
@@ -628,7 +604,6 @@ int sgl_fbdev_register(sgl_fbinfo_t *fbinfo);
  * @note you must check the result of this function
  */
 int sgl_fbdev_register_dev(sgl_color_t *buffer0, sgl_color_t *buffer1, uint32_t buffer_size, uint16_t resolution_x, uint16_t resolution_y);
-
 
 /**
  * @brief set framebuffer device flush ready
@@ -646,7 +621,6 @@ static inline void sgl_fbdev_flush_ready(void)
     }
 }
 
-
 /**
  * @brief check if framebuffer device buffer need to wait ready
  * @param fbdev point to the framebuffer device
@@ -656,7 +630,6 @@ static inline bool sgl_fbdev_flush_wait_ready(sgl_fbdev_t *fbdev)
 {
     return (fbdev->fb_status & (1 << sgl_system.fbdev.fb_swap)) == 0;
 }
-
 
 /**
  * @brief get framebuffer device buffer resolution width
@@ -675,7 +648,6 @@ static inline int16_t sgl_fbdev_resolution_width(void)
  */
 #define  SGL_SCREEN_WIDTH  sgl_fbdev_resolution_width()
 
-
 /**
  * @brief get framebuffer device buffer resolution height
  * @param none
@@ -693,7 +665,6 @@ static inline int16_t sgl_fbdev_resolution_height(void)
  */
 #define  SGL_SCREEN_HEIGHT  sgl_fbdev_resolution_height()
 
-
 /**
  * @brief get framebuffer device buffer address
  * @param none
@@ -703,7 +674,6 @@ static inline void* sgl_fbdev_buffer_address(void)
 {
     return sgl_system.fbdev.fbinfo.buffer[0];
 }
-
 
 /**
  * @brief framebuffer device flush function
@@ -769,7 +739,6 @@ static inline void sgl_fbdev_flush_area(sgl_area_t *area, sgl_color_t *src)
 #endif
 }
 
-
 #if (CONFIG_SGL_FBDEV_RUNTIME_ROTATION)
 /**
  * @brief set framebuffer device rotation angle
@@ -779,7 +748,6 @@ static inline void sgl_fbdev_flush_area(sgl_area_t *area, sgl_color_t *src)
  */
 void sgl_fbdev_set_angle(uint16_t angle);
 #endif //CONFIG_SGL_FBDEV_RUNTIME_ROTATION
-
 
 /**
  * @brief register log output device
@@ -791,7 +759,6 @@ static inline void sgl_logdev_register(void (*puts)(const char *str))
 {
     sgl_system.logdev = puts;
 }
-
 
 /**
  * @brief log output function
@@ -806,14 +773,12 @@ static inline void sgl_log_stdout(const char *str)
     }
 }
 
-
 /**
  * @brief get pixmap bytes of per pixel
  * @param pixmap pointer to pixmap
  * @return pixmap bytes of per pixel
  */
 uint8_t sgl_pixmal_get_pixel_bytes(const sgl_pixmap_t *pixmap);
-
 
 /**
  * @brief get tick milliseconds
@@ -825,7 +790,6 @@ static inline uint32_t sgl_tick_get(void)
     return sgl_system.tick_ms;
 }
 
-
 /**
  * @brief get last tick milliseconds
  * @param none
@@ -835,7 +799,6 @@ static inline uint32_t sgl_last_tick_get(void)
 {
     return sgl_system.last_tick;
 }
-
 
 /**
  * @brief increase tick milliseconds
@@ -849,7 +812,6 @@ static inline void sgl_tick_inc(uint32_t ms)
     sgl_system.tick_ms += ms;
 }
 
-
 /**
  * @brief sync tick milliseconds
  * @param tick_ms tick milliseconds
@@ -859,7 +821,6 @@ static inline void sgl_tick_sync(uint32_t tick_ms)
 {
     sgl_system.tick_ms = tick_ms;
 }
-
 
 /**
  * @brief init object node
@@ -874,7 +835,6 @@ static inline void sgl_obj_node_init(sgl_obj_t *obj)
     obj->child = NULL;
 }
 
-
 /**
  * @brief add object to parent
  * @param parent: pointer of parent object
@@ -883,14 +843,12 @@ static inline void sgl_obj_node_init(sgl_obj_t *obj)
  */
 void sgl_obj_add_child(sgl_obj_t *parent, sgl_obj_t *obj);
 
-
 /**
  * @brief remove an object from its parent
  * @param obj object to remove
  * @return none
  */
 void sgl_obj_remove(sgl_obj_t *obj);
-
 
 /**
  * @brief check if object has child
@@ -901,7 +859,6 @@ static inline bool sgl_obj_has_child(sgl_obj_t *obj) {
     SGL_ASSERT(obj != NULL);
     return (bool)obj->child;
 }
-
 
 /**
  * @brief get child of an object
@@ -921,7 +878,6 @@ static inline sgl_obj_t* sgl_obj_get_child(sgl_obj_t* obj)
  */
 sgl_obj_t* sgl_obj_get_last_child(sgl_obj_t* obj);
 
-
 /**
  * @brief check if object is last child
  * @param obj the object
@@ -933,7 +889,6 @@ static inline bool sgl_obj_is_last_child(sgl_obj_t* obj)
     return (obj == obj->parent->child);
 }
 
-
 /**
  * @brief check if object has sibling
  * @param  obj object
@@ -943,7 +898,6 @@ static inline bool sgl_obj_has_sibling(sgl_obj_t *obj) {
     SGL_ASSERT(obj != NULL);
     return (bool)obj->sibling;
 }
-
 
 /**
  * @brief get sibling of an object
@@ -956,14 +910,12 @@ static inline sgl_obj_t* sgl_obj_get_next_sibling(sgl_obj_t* obj)
     return obj->sibling;
 }
 
-
 /**
  * @brief get previous sibling of an object
  * @param obj the object
  * @return the previous sibling of the object
  */
 sgl_obj_t* sgl_obj_get_prev_sibling(sgl_obj_t* obj);
-
 
 /**
  * @brief get child count of an object
@@ -983,7 +935,6 @@ static inline size_t sgl_obj_get_child_count(sgl_obj_t *obj)
     return count;
 }
 
-
 /**
  * @brief merge an area into global dirty area
  * 
@@ -996,7 +947,6 @@ static inline size_t sgl_obj_get_child_count(sgl_obj_t *obj)
  */
 void sgl_dirty_area_push(sgl_area_t *area);
 
-
 /**
  * @brief set system font
  * @param font pointer to font
@@ -1008,7 +958,6 @@ static inline void sgl_set_system_font(const sgl_font_t *font)
     sgl_system.font = font;
 }
 
-
 /**
  * @brief get system font
  * @param none
@@ -1019,7 +968,6 @@ static inline const sgl_font_t* sgl_get_system_font(void)
     return sgl_system.font; 
 }
 
-
 /**
  * @brief Set object to dirty
  * @param obj point to object
@@ -1027,7 +975,6 @@ static inline const sgl_font_t* sgl_get_system_font(void)
  * @note this function will set object to dirty, include its children
  */
 void sgl_obj_set_dirty(sgl_obj_t *obj);
-
 
 /**
  * @brief Clear object dirty flag
@@ -1040,7 +987,6 @@ static inline void sgl_obj_clear_dirty(sgl_obj_t *obj)
     obj->dirty = 0;
 }
 
-
 /**
  * @brief  Clear all dirty areas of the object and its children.
  * @param[in] obj  The object to clear.
@@ -1048,7 +994,6 @@ static inline void sgl_obj_clear_dirty(sgl_obj_t *obj)
  * @note   This function is used to clear all dirty areas of the object and its children.
  */
 void sgl_obj_clear_all_dirty(sgl_obj_t *obj);
-
 
 /**
  * @brief  Set the object to be destroyed
@@ -1058,7 +1003,6 @@ void sgl_obj_clear_all_dirty(sgl_obj_t *obj);
  *       the object should be not NULL.
  */
 void sgl_obj_set_destroyed(sgl_obj_t *obj);
-
 
 /**
  * @brief check object destroyed flag
@@ -1071,7 +1015,6 @@ static inline bool sgl_obj_is_destroyed(sgl_obj_t *obj)
     return (bool)obj->destroyed;
 }
 
-
 /**
  * @brief check object dirty flag
  * @param obj point to object
@@ -1082,7 +1025,6 @@ static inline bool sgl_obj_is_dirty(sgl_obj_t *obj)
     SGL_ASSERT(obj != NULL);
     return (bool)obj->dirty;
 }
-
 
 /**
  * @brief set object need init coords
@@ -1095,7 +1037,6 @@ static inline void sgl_obj_needinit(sgl_obj_t *obj)
     obj->needinit = 1;
 }
 
-
 /**
  * @brief check object if need init coords
  * @param obj point to object
@@ -1107,6 +1048,71 @@ static inline bool sgl_obj_is_needinit(sgl_obj_t *obj)
     return (bool)obj->needinit;
 }
 
+/**
+ * @brief set object focus flag
+ * @param obj point to object
+ * @return none
+ */
+static inline void sgl_obj_set_focused(sgl_obj_t *obj)
+{
+    SGL_ASSERT(obj != NULL);
+    obj->focus = 1;
+}
+
+/**
+ * @brief clear object focus flag
+ * @param obj point to object
+ * @return none
+ */
+static inline void sgl_obj_clear_focused(sgl_obj_t *obj)
+{
+    SGL_ASSERT(obj != NULL);
+    obj->focus = 0;
+}
+
+/**
+ * @brief check object focus flag
+ * @param obj point to object
+ * @return flag, true - focused
+ */
+static inline bool sgl_obj_is_focused(sgl_obj_t *obj)
+{
+    SGL_ASSERT(obj != NULL);
+    return (bool)obj->focus;
+}
+
+/**
+ * @brief set object editable flag
+ * @param obj point to object
+ * @return none
+ */
+static inline void sgl_obj_set_editable(sgl_obj_t *obj)
+{
+    SGL_ASSERT(obj != NULL);
+    obj->editable = 1;
+}
+
+/**
+ * @brief clear object editable flag
+ * @param obj point to object
+ * @return none
+ */
+static inline void sgl_obj_clear_editable(sgl_obj_t *obj)
+{
+    SGL_ASSERT(obj != NULL);
+    obj->editable = 0;
+}
+
+/**
+ * @brief check object editable flag
+ * @param obj point to object
+ * @return flag, true - editable
+ */
+static inline bool sgl_obj_is_editable(sgl_obj_t *obj)
+{
+    SGL_ASSERT(obj != NULL);
+    return (bool)obj->editable;
+}
 
 /**
  * @brief clear object need init coords flag
@@ -1118,7 +1124,6 @@ static inline void sgl_obj_clear_needinit(sgl_obj_t *obj)
     SGL_ASSERT(obj != NULL);
     obj->needinit = 0;
 }
-
 
 /**
  * @brief set object hidden flag
@@ -1132,7 +1137,6 @@ static inline void sgl_obj_set_hidden(sgl_obj_t *obj)
     sgl_dirty_area_push(&obj->area);
 }
 
-
 /**
  * @brief set object visible
  * @param obj point to object
@@ -1145,7 +1149,6 @@ static inline void sgl_obj_set_visible(sgl_obj_t *obj)
     sgl_dirty_area_push(&obj->area);
 }
 
-
 /**
  * @brief check object hidden flag
  * @param obj point to object
@@ -1156,7 +1159,6 @@ static inline bool sgl_obj_is_hidden(sgl_obj_t *obj)
     SGL_ASSERT(obj != NULL);
     return (bool)obj->hide;
 }
-
 
 /**
  * @brief set object to clickable
@@ -1171,7 +1173,6 @@ static inline void sgl_obj_set_clickable(sgl_obj_t *obj)
     obj->flexible  = 1;
 }
 
-
 /**
  * @brief set object to unclickable
  * @param obj point to object
@@ -1185,7 +1186,6 @@ static inline void sgl_obj_set_unclickable(sgl_obj_t *obj)
     obj->flexible  = 0;
 }
 
-
 /**
  * @brief check object is clickable
  * @param obj point to object
@@ -1196,7 +1196,6 @@ static inline bool sgl_obj_is_clickable(sgl_obj_t *obj)
     SGL_ASSERT(obj != NULL);
     return (bool)obj->clickable;
 }
-
 
 /**
  * @brief set object flexible
@@ -1209,7 +1208,6 @@ static inline void sgl_obj_set_flexible(sgl_obj_t *obj)
     obj->flexible = 1;
 }
 
-
 /**
  * @brief set object unflexible
  * @param obj point to object
@@ -1220,7 +1218,6 @@ static inline void sgl_obj_set_unflexible(sgl_obj_t *obj)
     SGL_ASSERT(obj != NULL);
     obj->flexible = 0;
 }
-
 
 /**
  * @brief check object flexible
@@ -1233,7 +1230,6 @@ static inline bool sgl_obj_is_flexible(sgl_obj_t *obj)
     return (bool)obj->flexible;
 }
 
-
 /**
  * @brief set object clickable
  * @param obj point to object
@@ -1244,7 +1240,6 @@ static inline void sgl_obj_set_movable(sgl_obj_t *obj)
     SGL_ASSERT(obj != NULL);
     obj->movable = 1;
 }
-
 
 /**
  * @brief set object unmovable
@@ -1257,7 +1252,6 @@ static inline void sgl_obj_set_unmovable(sgl_obj_t *obj)
     obj->movable = 0;
 }
 
-
 /**
  * @brief check object movable
  * @param obj point to object
@@ -1269,7 +1263,6 @@ static inline bool sgl_obj_is_movable(sgl_obj_t *obj)
     return (bool)obj->movable;
 }
 
-
 /**
  * @brief update object area
  * @param area point to area that need update
@@ -1277,7 +1270,6 @@ static inline bool sgl_obj_is_movable(sgl_obj_t *obj)
  * @note this function will update object area, and the object area will be merged into the dirty area
  */
 void sgl_update_area(sgl_area_t *area);
-
 
 /**
  * @brief update object area
@@ -1287,7 +1279,6 @@ void sgl_update_area(sgl_area_t *area);
  */
 void sgl_obj_update_area(sgl_area_t *area);
 
-
 /**
  * @brief move object child position
  * @param obj point to object
@@ -1296,7 +1287,6 @@ void sgl_obj_update_area(sgl_area_t *area);
  * @return none
  */
 void sgl_obj_move_child_pos(sgl_obj_t *obj, int16_t ofs_x, int16_t ofs_y);
-
 
 /**
  * @brief move object child x position
@@ -1309,7 +1299,6 @@ static inline void sgl_obj_move_child_pos_x(sgl_obj_t *obj, int16_t ofs_x)
     sgl_obj_move_child_pos(obj, ofs_x, 0);
 }
 
-
 /**
  * @brief move object child y position
  * @param obj point to object
@@ -1321,7 +1310,6 @@ static inline void sgl_obj_move_child_pos_y(sgl_obj_t *obj, int16_t ofs_y)
     sgl_obj_move_child_pos(obj, 0, ofs_y);
 }
 
-
 /**
  * @brief zoom object size
  * @param obj point to object
@@ -1331,7 +1319,6 @@ static inline void sgl_obj_move_child_pos_y(sgl_obj_t *obj, int16_t ofs_y)
  */
 void sgl_obj_size_zoom(sgl_obj_t *obj, int16_t zoom);
 
-
 /**
  * @brief move object up a level layout
  * @param obj point to object
@@ -1339,7 +1326,6 @@ void sgl_obj_size_zoom(sgl_obj_t *obj, int16_t zoom);
  * @note Only move among sibling objects
  */
 void sgl_obj_move_up(sgl_obj_t *obj);
-
 
 /**
  * @brief move object down a level layout
@@ -1349,7 +1335,6 @@ void sgl_obj_move_up(sgl_obj_t *obj);
  */
 void sgl_obj_move_down(sgl_obj_t *obj);
 
-
 /**
  * @brief move object top level layout
  * @param obj point to object
@@ -1357,7 +1342,6 @@ void sgl_obj_move_down(sgl_obj_t *obj);
  * @note Only move among sibling objects
  */
 void sgl_obj_move_top(sgl_obj_t *obj);
-
 
 /**
  * @brief move object bottom level layout
@@ -1367,7 +1351,6 @@ void sgl_obj_move_top(sgl_obj_t *obj);
  */
 void sgl_obj_move_bottom(sgl_obj_t *obj);
 
-
 /**
  * @brief Set object absolute position
  * @param obj point to object
@@ -1376,7 +1359,6 @@ void sgl_obj_move_bottom(sgl_obj_t *obj);
  * @return none
  */
 void sgl_obj_set_abs_pos(sgl_obj_t *obj, int16_t abs_x, int16_t abs_y);
-
 
 /**
  * @brief Get object absolute position
@@ -1394,7 +1376,6 @@ static inline sgl_pos_t sgl_obj_get_abs_pos(sgl_obj_t *obj)
     return pos;
 }
 
-
 /**
  * @brief Set object relative position
  * @param obj point to object
@@ -1407,7 +1388,6 @@ static inline void sgl_obj_set_pos(sgl_obj_t *obj, int16_t x, int16_t y)
 {
     sgl_obj_set_abs_pos(obj, obj->parent->coords.x1 + x, obj->parent->coords.y1 + y);
 }
-
 
 /**
  * @brief Get object position
@@ -1425,7 +1405,6 @@ static inline sgl_pos_t sgl_obj_get_pos(sgl_obj_t *obj)
     return pos;
 }
 
-
 /**
  * @brief Set object x relative position
  * @param obj point to object
@@ -1438,7 +1417,6 @@ static inline void sgl_obj_set_pos_x(sgl_obj_t *obj, int16_t x)
     sgl_obj_set_abs_pos(obj, obj->parent->coords.x1 + x, obj->coords.y1);
 }
 
-
 /**
  * @brief Get object x relative position
  * @param obj point to object
@@ -1448,7 +1426,6 @@ static inline size_t sgl_obj_get_pos_x(sgl_obj_t *obj)
 {
     return (obj->coords.x1 - obj->parent->coords.x1);
 }
-
 
 /**
  * @brief Set object y relative position
@@ -1462,7 +1439,6 @@ static inline void sgl_obj_set_pos_y(sgl_obj_t *obj, int16_t y)
     sgl_obj_set_abs_pos(obj, obj->coords.x1, obj->parent->coords.y1 + y);
 }
 
-
 /**
  * @brief Get object y relative position
  * @param obj point to object
@@ -1472,7 +1448,6 @@ static inline int16_t sgl_obj_get_pos_y(sgl_obj_t *obj)
 {
     return obj->coords.y1 - obj->parent->coords.y1;
 }
-
 
 /**
  * @brief Set the alignment position of the object relative to its parent object.
@@ -1494,7 +1469,6 @@ static inline int16_t sgl_obj_get_pos_y(sgl_obj_t *obj)
  */
 void sgl_obj_set_pos_align(sgl_obj_t *obj, sgl_align_type_t type);
 
-
 /**
  * @brief Set the alignment position of the object relative to sibling object.
  * @param ref The reference object, it should be the sibling object.
@@ -1513,7 +1487,6 @@ void sgl_obj_set_pos_align(sgl_obj_t *obj, sgl_align_type_t type);
  */
 void sgl_obj_set_pos_align_ref(sgl_obj_t *ref, sgl_obj_t *obj, sgl_align_type_t type);
 
-
 /**
  * @brief Set the layout of the object.
  * @param obj The object to set the layout.
@@ -1528,7 +1501,6 @@ void sgl_obj_set_pos_align_ref(sgl_obj_t *ref, sgl_obj_t *obj, sgl_align_type_t 
  */
 void sgl_obj_set_layout(sgl_obj_t *obj, sgl_layout_desc_t *desc);
 
-
 /**
  * @brief Set object size
  * @param obj point to object
@@ -1537,7 +1509,6 @@ void sgl_obj_set_layout(sgl_obj_t *obj, sgl_layout_desc_t *desc);
  * @return none
  */
 void sgl_obj_set_size(sgl_obj_t *obj, int16_t width, int16_t height);
-
 
 /**
  * @brief Get object size
@@ -1553,7 +1524,6 @@ static inline sgl_size_t sgl_obj_get_size(sgl_obj_t *obj)
     return size;
 }
 
-
 /**
  * @brief Set object width
  * @param obj point to object
@@ -1561,7 +1531,6 @@ static inline sgl_size_t sgl_obj_get_size(sgl_obj_t *obj)
  * @return none
  */
 void sgl_obj_set_width(sgl_obj_t *obj, int16_t width);
-
 
 /**
  * @brief Get object width
@@ -1574,7 +1543,6 @@ static inline int16_t sgl_obj_get_width(sgl_obj_t *obj)
     return obj->coords.x2 - obj->coords.x1 + 1;
 }
 
-
 /**
  * @brief Set object height
  * @param obj point to object
@@ -1582,7 +1550,6 @@ static inline int16_t sgl_obj_get_width(sgl_obj_t *obj)
  * @return none
  */
 void sgl_obj_set_height(sgl_obj_t *obj, int16_t height);
-
 
 /**
  * @brief Get object height
@@ -1595,7 +1562,6 @@ static inline int16_t sgl_obj_get_height(sgl_obj_t *obj)
     return obj->coords.y2 - obj->coords.y1 + 1;
 }
 
-
 /**
  * @brief Set object border width
  * @param obj point to object
@@ -1603,7 +1569,6 @@ static inline int16_t sgl_obj_get_height(sgl_obj_t *obj)
  * @return none
  */
 void sgl_obj_set_border_width(sgl_obj_t *obj, uint8_t border);
-
 
 /**
  * @brief Get object border width
@@ -1615,7 +1580,6 @@ static inline int16_t sgl_obj_get_border_width(sgl_obj_t *obj)
     SGL_ASSERT(obj != NULL);
     return obj->border;
 }
-
 
 /**
  * @brief Get object fill rectangle
@@ -1635,7 +1599,6 @@ static inline sgl_area_t sgl_obj_get_fill_rect(sgl_obj_t *obj)
     return fill;
 }
 
-
 /**
  * @brief Set object event callback function
  * @param obj point to object
@@ -1651,7 +1614,6 @@ static inline void sgl_obj_set_event_cb(sgl_obj_t *obj, void (*event_fn)(sgl_eve
     obj->clickable = 1;
 }
 
-
 /**
  * @brief set the radius of object
  * @param obj object
@@ -1660,7 +1622,6 @@ static inline void sgl_obj_set_event_cb(sgl_obj_t *obj, void (*event_fn)(sgl_eve
  * @note if radius is larger than object's width or height, fix radius will be returned
  */
 void sgl_obj_set_radius(sgl_obj_t *obj, size_t radius);
-
 
 /**
  * @brief get the radius of object
@@ -1673,14 +1634,12 @@ static inline int16_t sgl_obj_get_radius(sgl_obj_t *obj)
     return obj->radius;
 }
 
-
 /**
  * @brief set current object as screen object
  * @param obj object, that you want to set an object as active page
  * @return none
  */
 void sgl_screen_load(sgl_obj_t *obj);
-
 
 /**
  * @brief get current screen object
@@ -1692,7 +1651,6 @@ static inline sgl_obj_t* sgl_screen_act(void)
     return sgl_system.fbdev.active;
 }
 
-
 /**
  * @brief sgl task handler function with sync mode
  * @param none
@@ -1700,7 +1658,6 @@ static inline sgl_obj_t* sgl_screen_act(void)
  * @note you can call this function to force update screen
  */
 void sgl_task_handler_sync(void);
-
 
 /**
  * @brief sgl task handler function
@@ -1710,7 +1667,6 @@ void sgl_task_handler_sync(void);
  */
 void sgl_task_handler(void);
 
-
 /**
  * @brief Create an object
  * @param parent parent object
@@ -1719,7 +1675,6 @@ void sgl_task_handler(void);
  */
 sgl_obj_t* sgl_obj_create(sgl_obj_t *parent);
 
-
 /**
  * @brief  free an object
  * @param  obj: object to free
@@ -1727,7 +1682,6 @@ sgl_obj_t* sgl_obj_create(sgl_obj_t *parent);
  * @note this function will free all the children of the object
  */
 void sgl_obj_free(sgl_obj_t *obj);
-
 
 /**
  * @brief delete object
@@ -1739,7 +1693,6 @@ void sgl_obj_free(sgl_obj_t *obj);
  */
 void sgl_obj_delete(sgl_obj_t *obj);
 
-
 /**
  * @brief delete object
  * @param obj point to object
@@ -1747,7 +1700,6 @@ void sgl_obj_delete(sgl_obj_t *obj);
  * @note this function will take effect immediately
  */
 void sgl_obj_delete_sync(sgl_obj_t *obj);
-
 
 /**
  * @brief color mixer
@@ -1790,7 +1742,6 @@ static inline sgl_color_t sgl_color_mixer(sgl_color_t fg_color, sgl_color_t bg_c
     return ret;
 }
 
-
 /**
  * @brief Fills a block of memory with a solid color.
  *
@@ -1806,7 +1757,6 @@ static inline void sgl_color_set(sgl_color_t *dest, sgl_color_t color, uint32_t 
     while (len--) {*dest++ = color; }
 }
 
-
 /**
  * @brief area init
  * @param area : area pointer
@@ -1818,7 +1768,6 @@ static inline void sgl_area_init(sgl_area_t *area)
     area->x1 = area->y1 = SGL_POS_MAX;
     area->x2 = area->y2 = SGL_POS_MIN;
 }
-
 
 /**
  * @brief get pixel of pixmap
@@ -1833,7 +1782,6 @@ static inline sgl_color_t sgl_pixmap_get_pixel(const sgl_pixmap_t *pixmap, int16
     return ((sgl_color_t*)pixmap->bitmap.array)[y * pixmap->width + x];
 }
 
-
 /**
  * @brief get pixel of pixmap buf
  * @pixmap: pointe to pixmap
@@ -1846,7 +1794,6 @@ static inline sgl_color_t* sgl_pixmap_get_buf(const sgl_pixmap_t *pixmap, int16_
     SGL_ASSERT(pixmap != NULL);
     return &((sgl_color_t*)pixmap->bitmap.array)[y * pixmap->width + x];
 }
-
 
 /**
  * @brief check two area is overlap
@@ -1865,7 +1812,6 @@ static inline bool sgl_area_is_overlap(sgl_area_t *area_a, sgl_area_t *area_b)
     return true;
 }
 
-
 /**
  * @brief check surf and other area is overlap
  * @param surf surfcare
@@ -1878,7 +1824,6 @@ static inline bool sgl_surf_area_is_overlap(sgl_surf_t *surf, sgl_area_t *area)
     return sgl_area_is_overlap((sgl_area_t*)surf, area);
 }
 
-
 /**
  * @brief  Get area intersection between two areas
  * @param area_a: area a
@@ -1888,7 +1833,6 @@ static inline bool sgl_surf_area_is_overlap(sgl_surf_t *surf, sgl_area_t *area)
  * @note: this function is unsafe, you should check the area_a and area_b and clip is not NULL by yourself
  */
 bool sgl_area_clip(sgl_area_t *area_a, sgl_area_t *area_b, sgl_area_t *clip);
-
 
 /**
  * @brief  Get area intersection between surface and area
@@ -1903,7 +1847,6 @@ static inline bool sgl_surf_clip(sgl_surf_t *surf, sgl_area_t *area, sgl_area_t 
     return sgl_area_clip((sgl_area_t*)surf, area, clip);
 }
 
-
 /**
  * @brief clip area with another area
  * @param clip [in][out] clip area
@@ -1912,7 +1855,6 @@ static inline bool sgl_surf_clip(sgl_surf_t *surf, sgl_area_t *area, sgl_area_t 
  * @note: this function is unsafe, you should check the clip and area is not NULL by yourself
  */
 bool sgl_area_selfclip(sgl_area_t *clip, sgl_area_t *area);
-
 
 /**
  * @brief merge two area, the merge is result of the two area clip
@@ -1931,7 +1873,6 @@ static inline void sgl_area_merge(sgl_area_t *area_a, sgl_area_t *area_b, sgl_ar
     merge->y2 = sgl_max(area_a->y2, area_b->y2);
 }
 
-
 /**
  * @brief merge two area, the merge is a new area
  * @param merge [in][out] merge area
@@ -1948,7 +1889,6 @@ static inline void sgl_area_selfmerge(sgl_area_t *merge, sgl_area_t *area)
     merge->y2 = sgl_max(merge->y2, area->y2);
 }
 
-
 /**
  * @brief sgl global initialization
  * @param none
@@ -1958,7 +1898,6 @@ static inline void sgl_area_selfmerge(sgl_area_t *merge, sgl_area_t *area)
  */
 int sgl_init(void);
 
-
 /**
  * @brief initialize object
  * @param obj object
@@ -1966,7 +1905,6 @@ int sgl_init(void);
  * @return int, 0 means successful, -1 means failed
  */
 int sgl_obj_init(sgl_obj_t *obj, sgl_obj_t *parent);
-
 
 /**
  * @brief Convert UTF-8 string to Unicode
@@ -1976,7 +1914,6 @@ int sgl_obj_init(sgl_obj_t *obj, sgl_obj_t *parent);
  */
 uint32_t sgl_utf8_to_unicode(const char *utf8_str, uint32_t *p_unicode_buffer);
 
-
 /**
  * @brief Search for the index of a Unicode character in the font table
  * @param font Pointer to the font structure containing character data
@@ -1984,7 +1921,6 @@ uint32_t sgl_utf8_to_unicode(const char *utf8_str, uint32_t *p_unicode_buffer);
  * @return Index of the character in the font table
  */
 uint32_t sgl_search_unicode_ch_index(const sgl_font_t *font, uint32_t unicode);
-
 
 /**
  * @brief get height in font
@@ -1997,7 +1933,6 @@ static inline int16_t sgl_font_get_height(const sgl_font_t *font)
     return font != NULL ? font->font_height : 0;
 }
 
-
 /**
  * @brief get the width of a string
  * @param str string
@@ -2005,7 +1940,6 @@ static inline int16_t sgl_font_get_height(const sgl_font_t *font)
  * @return width of string
  */
 int32_t sgl_font_get_string_width(const char *str, const sgl_font_t *font);
-
 
 /**
  * @brief get the height of a string, which is in a rect area
@@ -2017,7 +1951,6 @@ int32_t sgl_font_get_string_width(const char *str, const sgl_font_t *font);
  */
 int32_t sgl_font_get_string_height(int16_t width, const char *str, const sgl_font_t *font, uint8_t line_space);
 
-
 /**
  * @brief get the alignment position
  * @param parent_size parent size
@@ -2026,7 +1959,6 @@ int32_t sgl_font_get_string_height(int16_t width, const char *str, const sgl_fon
  * @return alignment position
  */
 sgl_pos_t sgl_get_align_pos(sgl_size_t *parent_size, sgl_size_t *size, sgl_align_type_t type);
-
 
 /**
  * @brief get the text position in the area
@@ -2039,7 +1971,6 @@ sgl_pos_t sgl_get_align_pos(sgl_size_t *parent_size, sgl_size_t *size, sgl_align
  */
 sgl_pos_t sgl_get_text_pos(sgl_area_t *area, const sgl_font_t *font, const char *text, int16_t offset, sgl_align_type_t type);
 
-
 /**
  * @brief get the icon position of area
  * @param area point to area
@@ -2049,7 +1980,6 @@ sgl_pos_t sgl_get_text_pos(sgl_area_t *area, const sgl_font_t *font, const char 
  */
 sgl_pos_t sgl_get_icon_pos(sgl_area_t *area, const sgl_icon_pixmap_t *icon, int16_t offset, sgl_align_type_t type);
 
-
 /**
  * @brief set page background color
  * @param obj point to object
@@ -2057,7 +1987,6 @@ sgl_pos_t sgl_get_icon_pos(sgl_area_t *area, const sgl_icon_pixmap_t *icon, int1
  * @return none
  */
 void sgl_page_set_color(sgl_obj_t* obj, sgl_color_t color);
-
 
 /**
  * @brief set page background pixmap
@@ -2067,7 +1996,6 @@ void sgl_page_set_color(sgl_obj_t* obj, sgl_color_t color);
  */
 void sgl_page_set_pixmap(sgl_obj_t* obj, const sgl_pixmap_t *pixmap);
 
-
 /**
  * @brief set page background alpha
  * @param obj point to object
@@ -2075,7 +2003,6 @@ void sgl_page_set_pixmap(sgl_obj_t* obj, const sgl_pixmap_t *pixmap);
  * @return none
  */
 void sgl_page_set_alpha(sgl_obj_t* obj, uint8_t alpha);
-
 
 /**
  * @brief get parent of an object
@@ -2088,7 +2015,6 @@ static inline sgl_obj_t* sgl_obj_get_parent(sgl_obj_t* obj)
     return obj->parent;
 }
 
-
 /**
  * @brief format a string, a simple version of vsnprintf
  * @param buf buffer
@@ -2098,7 +2024,6 @@ static inline sgl_obj_t* sgl_obj_get_parent(sgl_obj_t* obj)
  * @return number of characters written
  */
 int sgl_vsnprintf(char *buf, size_t size, const char *fmt, va_list ap);
-
 
 /**
  * @brief format a string, a simple version of snprintf
@@ -2110,7 +2035,6 @@ int sgl_vsnprintf(char *buf, size_t size, const char *fmt, va_list ap);
  */
 int sgl_snprintf(char *buf, size_t size, const char *fmt, ...);
 
-
 /**
  * @brief format a string, a simple version of sprintf (with width alignment support)
  * @param buf buffer
@@ -2119,7 +2043,6 @@ int sgl_snprintf(char *buf, size_t size, const char *fmt, ...);
  * @return number of characters written
  */
 int sgl_sprintf(char *buf, const char *fmt, ...);
-
 
 #if (CONFIG_SGL_OBJ_USE_NAME && CONFIG_SGL_DEBUG)
 /**
@@ -2134,7 +2057,6 @@ static inline void sgl_obj_set_name(sgl_obj_t *obj, const char *name)
     obj->name = name;
 }
 
-
 /**
  * @brief print object name that include this all child
  * @param obj point to object
@@ -2147,6 +2069,5 @@ void sgl_obj_print_name(sgl_obj_t *obj);
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif
-
 
 #endif //__SGL_CORE_H__

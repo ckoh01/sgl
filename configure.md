@@ -52,7 +52,8 @@ sgl_config.h是 SGL (Simple Graphics Library) 框架中的**功能配置**。
 | 宏定义 | 默认值 | 描述 |
 | :--- | :---: | :--- |
 | [CONFIG_SGL_EVENT_QUEUE_SIZE] | `16` | 可以队列化的最大输入事件数（触摸、按键、鼠标）。如果队列已满，新事件可能会被丢弃。对于高频输入设备，请增加此值。 |
-| [CONFIG_SGL_EVENT_PHY_KEY]| `0` | 启用物理键盘事件支持。如果您的硬件有矩阵键盘或映射到按键的 GPIO 按钮，请设置为 `1`。
+| [CONFIG_SGL_FOCUSED_COLOR]| `sgl_rgb(0, 0xff, 0)` | 按键事件聚焦颜色，默认是绿色。 |
+| [CONFIG_SGL_FOCUSED_WIDTH]| `1` | 按键事件聚焦宽度，默认是 1。|
 
 ---
 

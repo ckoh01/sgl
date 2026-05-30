@@ -65,8 +65,12 @@ extern "C" {
 #define CONFIG_SGL_EVENT_QUEUE_SIZE                                (16)  /* Max input event queue size */
 #endif
 
-#ifndef CONFIG_SGL_EVENT_PHY_KEY
-#define CONFIG_SGL_EVENT_PHY_KEY                                   (0)  /* Physical keyboard enable */
+#ifndef CONFIG_SGL_FOCUSED_COLOR
+#define CONFIG_SGL_FOCUSED_COLOR                                   sgl_rgb(0x00, 0xFF, 0x00) /* Focused color */
+#endif
+
+#ifndef CONFIG_SGL_FOCUSED_WIDTH
+#define CONFIG_SGL_FOCUSED_WIDTH                                   (1)  /* Focused width */
 #endif
 
 #ifndef CONFIG_SGL_DIRTY_AREA_NUM_MAX

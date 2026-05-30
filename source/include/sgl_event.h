@@ -29,17 +29,14 @@
 extern "C" {
 #endif
 
-
 #include <sgl_cfgfix.h>
 #include <stddef.h>
 #include <sgl_list.h>
 #include <sgl_types.h>
 
-
 /* Forward declaration of sgl_obj and sgl_page*/
 struct sgl_obj;
 struct sgl_page;
-
 
 /**
  * @brief Event type enumeration
@@ -73,9 +70,7 @@ struct sgl_page;
 #define  SGL_EVENT_KEY_ENTER            (21)
 #define  SGL_EVENT_KEY_ESC              (22)
 
-
 #define  sgl_event_type_t               uint8_t
-
 
 #define  SGL_EVENT_MOVE_THRESHOLD       (2)
 #define  SGL_EVENT_CLICK_INTERVAL       (500)
@@ -262,8 +257,14 @@ void sgl_event_task(void);
  */
 void sgl_event_pos_input(int16_t x, int16_t y, bool flag);
 
+/**
+ * @brief Add object to key group
+ * @param obj The object to add
+ * @return none
+ * @warning you should check the return value of sgl_event_key_add_group
+ */
+void sgl_event_key_add_group(struct sgl_obj *obj);
 
-#if (CONFIG_SGL_EVENT_PHY_KEY)
 /**
  * @brief Physical keyboard event UP
  * @param none
@@ -297,12 +298,20 @@ void sgl_event_key_left(void);
 void sgl_event_key_right(void);
 
 /**
- * @brief Physical keyboard event ENTER
+ * @brief Physical keyboard event ENTER pressed
  * @param none
  * @return none
  * @note: you can call it in physical keyboard event handler function
  */
-void sgl_event_key_enter(void);
+void sgl_event_key_enter_pressed(void);
+
+/**
+ * @brief Physical keyboard event ENTER released
+ * @param none
+ * @return none
+ * @note: you can call it in physical keyboard event handler function
+ */
+void sgl_event_key_enter_released(void);
 
 /**
  * @brief Physical keyboard event ESC
@@ -311,8 +320,6 @@ void sgl_event_key_enter(void);
  * @note: you can call it in physical keyboard event handler function
  */
 void sgl_event_key_esc(void);
-
-#endif
 
 #ifdef __cplusplus
 } /*extern "C"*/

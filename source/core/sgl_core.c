@@ -33,10 +33,8 @@
 #include <sgl_theme.h>
 #include <sgl_misc.h>
 
-
 /* current sgl system variable, do not used it */
 sgl_system_t sgl_system;
-
 
 /**
  * @brief Alpha blending table for 4 bpp and 2 bpp
@@ -44,12 +42,10 @@ sgl_system_t sgl_system;
 const uint8_t sgl_opa4_table[16] = {0,  17, 34,  51, 68, 85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255 };
 const uint8_t sgl_opa2_table[4]  = {0, 85, 170, 255};
 
-
 /**
  * the memory pool, it will be used to allocate memory for the page pool
 */
 static uint8_t sgl_mem_pool[CONFIG_SGL_HEAP_MEMORY_SIZE];
-
 
 /**
  * @brief register the frame buffer device
@@ -101,7 +97,6 @@ int sgl_fbdev_register(sgl_fbinfo_t *fbinfo)
     return 0;
 }
 
-
 /**
  * @brief register the frame buffer device
  * @param buffer0 the frame buffer device buffer0
@@ -124,7 +119,6 @@ int sgl_fbdev_register_dev(sgl_color_t *buffer0, sgl_color_t *buffer1, uint32_t 
 
     return sgl_fbdev_register(&fbinfo);
 }
-
 
 /**
  * @brief get pixmap bytes of per pixel
@@ -157,7 +151,6 @@ uint8_t sgl_pixmal_get_pixel_bytes(const sgl_pixmap_t *pixmap)
     return s_bytes_per_pixel[pixmap->format];
 }
 
-
 /**
  * @brief add object to parent
  * @param parent: pointer of parent object
@@ -181,7 +174,6 @@ void sgl_obj_add_child(sgl_obj_t *parent, sgl_obj_t *obj)
 
     obj->parent = parent;
 }
-
 
 /**
  * @brief remove an object from its parent
@@ -209,7 +201,6 @@ void sgl_obj_remove(sgl_obj_t *obj)
 
     obj->sibling = NULL;
 }
-
 
 /**
  * @brief move object child position
@@ -249,7 +240,6 @@ void sgl_obj_move_child_pos(sgl_obj_t *obj, int16_t ofs_x, int16_t ofs_y)
     }
 }
 
-
 /**
  * @brief Set object absolute position
  * @param obj point to object
@@ -272,7 +262,6 @@ void sgl_obj_set_abs_pos(sgl_obj_t *obj, int16_t abs_x, int16_t abs_y)
     sgl_obj_move_child_pos(obj, x_diff, y_diff);
 }
 
-
 /**
  * @brief zoom object size
  * @param obj point to object
@@ -288,7 +277,6 @@ void sgl_obj_size_zoom(sgl_obj_t *obj, int16_t zoom)
     obj->coords.y1 -= zoom;
     obj->coords.y2 += zoom;
 }
-
 
 /**
  * @brief get last child of an object
@@ -308,7 +296,6 @@ sgl_obj_t* sgl_obj_get_last_child(sgl_obj_t* obj)
     return child;
 }
 
-
 /**
  * @brief get previous sibling of an object
  * @param obj the object
@@ -326,7 +313,6 @@ sgl_obj_t* sgl_obj_get_prev_sibling(sgl_obj_t* obj)
     }
     return child;
 }
-
 
 /**
  * @brief move object up a level layout
@@ -367,7 +353,6 @@ void sgl_obj_move_up(sgl_obj_t *obj)
     }
 }
 
-
 /**
  * @brief move object down a level layout
  * @param obj point to object
@@ -406,7 +391,6 @@ void sgl_obj_move_down(sgl_obj_t *obj)
         sgl_obj_set_dirty(obj);
     }
 }
-
 
 /**
  * @brief move object top level layout
@@ -454,7 +438,6 @@ void sgl_obj_move_top(sgl_obj_t *obj)
     sgl_obj_set_dirty(obj);
 }
 
-
 /**
  * @brief move object bottom level layout
  * @param obj point to object
@@ -485,7 +468,6 @@ void sgl_obj_move_bottom(sgl_obj_t *obj)
     sgl_obj_set_dirty(obj);
 }
 
-
 /**
  * @brief get fix radius of object
  * @param obj object
@@ -505,7 +487,6 @@ void sgl_obj_set_radius(sgl_obj_t *obj, size_t radius)
 
     obj->radius = radius & 0xFFF;
 }
-
 
 #if (CONFIG_SGL_OBJ_USE_NAME && CONFIG_SGL_DEBUG)
 /**
@@ -539,9 +520,7 @@ void sgl_obj_print_name(sgl_obj_t *obj)
         }
     }
 }
-
 #endif
-
 
 /**
  * @brief page construct callback function
@@ -571,7 +550,6 @@ static void sgl_page_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_t 
     }
 }
 
-
 /**
  * @brief set page background color
  * @param obj point to object
@@ -584,7 +562,6 @@ void sgl_page_set_color(sgl_obj_t* obj, sgl_color_t color)
     page->color = color;
     sgl_obj_set_dirty(obj);
 }
-
 
 /**
  * @brief set page background pixmap
@@ -599,7 +576,6 @@ void sgl_page_set_pixmap(sgl_obj_t* obj, const sgl_pixmap_t *pixmap)
     sgl_obj_set_dirty(obj);
 }
 
-
 /**
  * @brief set page background alpha
  * @param obj point to object
@@ -612,7 +588,6 @@ void sgl_page_set_alpha(sgl_obj_t* obj, uint8_t alpha)
     page->alpha = alpha;
     sgl_obj_set_dirty(obj);
 }
-
 
 /**
  * @brief create a page
@@ -666,7 +641,6 @@ static sgl_page_t* sgl_page_create(void)
     return page;
 }
 
-
 /**
  * @brief Create an object
  * @param parent parent object
@@ -710,7 +684,6 @@ sgl_obj_t* sgl_obj_create(sgl_obj_t *parent)
     }
 }
 
-
 /**
  * @brief initialize global dirty area
  * @param none
@@ -720,7 +693,6 @@ static inline void sgl_dirty_area_init(void)
 {
     sgl_system.fbdev.dirty_num = 0;
 }
-
 
 /**
  * @brief sgl global initialization
@@ -772,7 +744,6 @@ int sgl_init(void)
     return 0;
 }
 
-
 /**
  * @brief set current object as screen object
  * @param obj object, that you want to set an object as active page
@@ -787,7 +758,6 @@ void sgl_screen_load(sgl_obj_t *obj)
     sgl_dirty_area_init();
     sgl_obj_set_dirty(obj);
 }
-
 
 #if (CONFIG_SGL_FBDEV_RUNTIME_ROTATION)
 /**
@@ -824,7 +794,6 @@ void sgl_fbdev_set_angle(uint16_t angle)
 }
 #endif // !CONFIG_SGL_FBDEV_RUNTIME_ROTATION
 
-
 /**
  * @brief  Get area intersection between two areas
  * @param area_a: area a
@@ -848,7 +817,6 @@ bool sgl_area_clip(sgl_area_t *area_a, sgl_area_t *area_b, sgl_area_t *clip)
     return true;
 }
 
-
 /**
  * @brief clip area with another area
  * @param clip [in][out] clip area
@@ -871,7 +839,6 @@ bool sgl_area_selfclip(sgl_area_t *clip, sgl_area_t *area)
     return true;
 }
 
-
 /**
  * @brief Computes the total boundary expansion (in Manhattan distance) required to merge rectangle b into rectangle a.
  *
@@ -884,7 +851,6 @@ static inline int32_t sgl_area_growth(sgl_area_t *a, sgl_area_t *b)
     return (a->x1 - sgl_min(a->x1, b->x1)) + (sgl_max(a->x2, b->x2) - a->x2)
            + (a->y1 - sgl_min(a->y1, b->y1)) + (sgl_max(a->y2, b->y2) - a->y2);
 }
-
 
 /**
  * @brief Quickly determines if two rectangles are close enough to be merged.
@@ -911,7 +877,6 @@ static inline bool sgl_merge_determines(sgl_area_t* a, sgl_area_t* b)
 
     return sum > (int32_t)(mw * mh);
 }
-
 
 /**
  * @brief merge an area into global dirty area
@@ -962,7 +927,6 @@ void sgl_dirty_area_push(sgl_area_t *area)
     }
 }
 
-
 /**
  * @brief initialize object
  * @param obj object
@@ -995,7 +959,6 @@ int sgl_obj_init(sgl_obj_t *obj, sgl_obj_t *parent)
     return 0;
 }
 
-
 /**
  * @brief  free an object
  * @param  obj: object to free
@@ -1025,7 +988,6 @@ void sgl_obj_free(sgl_obj_t *obj)
     }
 }
 
-
 /**
  * @brief Set object to dirty
  * @param obj point to object
@@ -1038,7 +1000,6 @@ void sgl_obj_set_dirty(sgl_obj_t *obj)
     obj->dirty = 1;
     sgl_system.fbdev.update_flag = 1;
 }
-
 
 /**
  * @brief  Set the object to be destroyed
@@ -1053,7 +1014,6 @@ void sgl_obj_set_destroyed(sgl_obj_t *obj)
     obj->destroyed = 1;
     sgl_system.fbdev.update_flag = 1;
 }
-
 
 /**
  * @brief  Clear all dirty areas of the object and its children.
@@ -1083,7 +1043,6 @@ void sgl_obj_clear_all_dirty(sgl_obj_t *obj)
     }
 }
 
-
 /**
  * @brief update object area
  * @param area point to area that need update
@@ -1100,7 +1059,6 @@ void sgl_update_area(sgl_area_t *area)
     clip.y2 = sgl_min(clip.y2, area->y2);
     sgl_dirty_area_push(&clip);
 }
-
 
 /**
  * @brief update object area
@@ -1131,7 +1089,6 @@ void sgl_obj_update_area(sgl_area_t *area)
     }
 }
 
-
 /**
  * @brief Set object size
  * @param obj point to object
@@ -1147,7 +1104,6 @@ void sgl_obj_set_size(sgl_obj_t *obj, int16_t width, int16_t height)
     sgl_obj_set_dirty(obj);
 }
 
-
 /**
  * @brief Set object width
  * @param obj point to object
@@ -1160,7 +1116,6 @@ void sgl_obj_set_width(sgl_obj_t *obj, int16_t width)
     obj->coords.x2 = obj->coords.x1 + width - 1;
     sgl_obj_set_dirty(obj);
 }
-
 
 /**
  * @brief Set object height
@@ -1175,7 +1130,6 @@ void sgl_obj_set_height(sgl_obj_t *obj, int16_t height)
     sgl_obj_set_dirty(obj);
 }
 
-
 /**
  * @brief Set object border width
  * @param obj point to object
@@ -1188,7 +1142,6 @@ void sgl_obj_set_border_width(sgl_obj_t *obj, uint8_t border)
     obj->border = sgl_min3(border, sgl_obj_get_width(obj) / 2, sgl_obj_get_height(obj) / 2);
     sgl_obj_set_dirty(obj);
 }
-
 
 /**
  * @brief delete object
@@ -1217,7 +1170,6 @@ void sgl_obj_delete(sgl_obj_t *obj)
     sgl_obj_set_destroyed(obj);
 }
 
-
 /**
  * @brief delete object
  * @param obj point to object
@@ -1229,7 +1181,6 @@ void sgl_obj_delete_sync(sgl_obj_t *obj)
     sgl_obj_delete(obj);
     sgl_task_handler_sync();
 }
-
 
 /**
  * @brief Convert UTF-8 string to Unicode
@@ -1258,7 +1209,6 @@ uint32_t sgl_utf8_to_unicode(const char *utf8_str, uint32_t *p_unicode_buffer)
     }
     return 0;
 }
-
 
 /**
  * @brief Search for the index of a Unicode character in the font table
@@ -1308,7 +1258,6 @@ uint32_t sgl_search_unicode_ch_index(const sgl_font_t *font, uint32_t unicode)
     return 0;
 }
 
-
 /**
  * @brief get the width of a string
  * @param str string
@@ -1328,7 +1277,6 @@ int32_t sgl_font_get_string_width(const char *str, const sgl_font_t *font)
     }
     return len;
 }
-
 
 /**
  * @brief get the height of a string, which is in a rect area
@@ -1369,7 +1317,6 @@ int32_t sgl_font_get_string_height(int16_t width, const char *str, const sgl_fon
 
     return lines * (font->font_height + line_space);
 }
-
 
 /**
  * @brief get the alignment position
@@ -1434,7 +1381,6 @@ sgl_pos_t sgl_get_align_pos(sgl_size_t *parent_size, sgl_size_t *size, sgl_align
     return ret;
 }
 
-
 /**
  * @brief get the text position in the area
  * @param area point to area
@@ -1465,7 +1411,6 @@ sgl_pos_t sgl_get_text_pos(sgl_area_t *area, const sgl_font_t *font, const char 
     return ret;
 }
 
-
 /**
  * @brief get the icon position of area
  * @param area point to area
@@ -1493,7 +1438,6 @@ sgl_pos_t sgl_get_icon_pos(sgl_area_t *area, const sgl_icon_pixmap_t *icon, int1
 
     return ret;
 }
-
 
 /**
  * @brief Set the alignment position of the object relative to its parent object.
@@ -1538,7 +1482,6 @@ void sgl_obj_set_pos_align(sgl_obj_t *obj, sgl_align_type_t type)
 
     sgl_obj_set_abs_pos(obj, p_pos.x + obj_pos.x, p_pos.y + obj_pos.y);
 }
-
 
 /**
  * @brief Set the alignment position of the object relative to sibling object.
@@ -1607,7 +1550,6 @@ void sgl_obj_set_pos_align_ref(sgl_obj_t *ref, sgl_obj_t *obj, sgl_align_type_t 
     }
     sgl_obj_set_dirty(obj);
 }
-
 
 /**
  * @brief Set the layout of the object.
@@ -1713,7 +1655,6 @@ void sgl_obj_set_layout(sgl_obj_t *obj, sgl_layout_desc_t *desc)
     sgl_obj_set_dirty(obj);
 }
 
-
 /**
  * @brief draw object slice completely
  * @param obj it should point to active root object
@@ -1746,6 +1687,11 @@ static inline void draw_obj_slice(sgl_obj_t *obj, sgl_surf_t *surf)
             evt.type = SGL_EVENT_DRAW_MAIN;
             SGL_ASSERT(obj->construct_fn != NULL);
             obj->construct_fn(surf, obj, &evt);
+
+            /* draw focus border */
+            if (unlikely(obj->focus)) {
+                sgl_draw_wireframe(surf, &obj->area, &obj->coords, obj->radius, SGL_FOCUSED_WIDTH, SGL_FOCUSED_COLOR, SGL_ALPHA_MAX);
+            }
         }
 
         if (obj->child != NULL) {
@@ -1755,7 +1701,7 @@ static inline void draw_obj_slice(sgl_obj_t *obj, sgl_surf_t *surf)
 
 #if (CONFIG_SGL_DIRTY_AREA_TRACE)
     if (sgl_system.fbdev.trace_flag) {
-        sgl_draw_wireframe(surf, (sgl_area_t*)surf, surf->dirty, 1, SGL_DIRTY_AREA_TRACE_COLOR, SGL_ALPHA_MAX);
+        sgl_draw_wireframe(surf, (sgl_area_t*)surf, surf->dirty, 0, 1, SGL_DIRTY_AREA_TRACE_COLOR, SGL_ALPHA_MAX);
     }
 #endif
 #if (CONFIG_SGL_MONITOR_TRACE)
@@ -1764,7 +1710,6 @@ static inline void draw_obj_slice(sgl_obj_t *obj, sgl_surf_t *surf)
     /* flush dirty area into screen */
     sgl_fbdev_flush_area((sgl_area_t*)surf, surf->buffer);
 }
-
 
 /**
  * @brief collect all dirty area by for each all object that is dirty and visible
@@ -1855,7 +1800,6 @@ static inline void sgl_dirty_area_harvest(sgl_obj_t *obj)
     }
 }
 
-
 /**
  * @brief sgl to draw complete frame
  * @param fbdev point to  frame buffer device
@@ -1920,7 +1864,6 @@ static inline void sgl_draw_task(sgl_fbdev_t *fbdev, sgl_area_t *dirty_area, uin
     }
 }
 
-
 /**
  * @brief sgl task handler function with sync mode
  * @param none
@@ -1969,7 +1912,6 @@ void sgl_task_handler_sync(void)
     /* clear dirty area and fullscreen flag */
     sgl_system.fbdev.dirty_num = 0;
 }
-
 
 /**
  * @brief sgl task handler function
