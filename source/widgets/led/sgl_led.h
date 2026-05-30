@@ -33,6 +33,9 @@
 #include <sgl_cfgfix.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @brief sgl led struct
@@ -124,5 +127,9 @@ void sgl_led_on(sgl_obj_t *obj);
  * @return none
  */
 void sgl_led_off(sgl_obj_t *obj);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // !__SGL_LED_H__

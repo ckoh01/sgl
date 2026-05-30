@@ -36,21 +36,15 @@
 static void sgl_ring_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_t *evt)
 {
     sgl_ring_t *ring = sgl_container_of(obj, sgl_ring_t, obj);
-    int16_t cx, cy;
+    int16_t cx, cy, radius_in, radius_out;
 
     if(evt->type == SGL_EVENT_DRAW_MAIN) {
         cx = (obj->coords.x2 + obj->coords.x1) / 2;
         cy = (obj->coords.y2 + obj->coords.y1) / 2;
-        sgl_draw_fill_ring(surf, &obj->area, cx, cy, ring->radius_in, ring->radius_out, ring->color, ring->alpha);
-    }
-    else if(evt->type == SGL_EVENT_DRAW_INIT) {
-        if(ring->radius_out == -1) {
-            ring->radius_out = (obj->coords.x2 - obj->coords.x1) / 2;
-        }
+        radius_out = sgl_obj_get_width(obj) / 2;
+        radius_in = radius_out - ring->width;
 
-        if(ring->radius_in == -1) {
-            ring->radius_in = ring->radius_out - 2;
-        }
+        sgl_draw_fill_ring(surf, &obj->area, cx, cy, radius_in, radius_out, ring->color, ring->alpha);
     }
 }
 
@@ -75,11 +69,9 @@ sgl_obj_t* sgl_ring_create(sgl_obj_t* parent)
     sgl_obj_init(&ring->obj, parent);
     obj->construct_fn = sgl_ring_construct_cb;
 
-    obj->needinit = 1;
-    ring->radius_in = -1;
-    ring->radius_out = -1;
     ring->alpha = SGL_THEME_ALPHA;
     ring->color = SGL_THEME_COLOR;
+    ring->width = 2;
 
     return obj;
 }
@@ -121,10 +113,7 @@ void sgl_ring_set_alpha(sgl_obj_t *obj, uint8_t alpha)
 void sgl_ring_set_radius(sgl_obj_t *obj, uint16_t radius_in, uint16_t radius_out)
 {
     sgl_ring_t *ring = sgl_container_of(obj, sgl_ring_t, obj);
-    if (obj->radius > 0) {
-        sgl_obj_size_zoom(obj, radius_out - obj->radius);
-    }
-    ring->radius_in = radius_in;
-    ring->radius_out = obj->radius = radius_out;
+    sgl_obj_circle_zoom(obj, radius_out);
+    ring->width = radius_out - radius_in;
     sgl_obj_set_dirty(obj);
 }

@@ -37,13 +37,12 @@ static void sgl_led_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_t *
 {
     sgl_led_t *led = sgl_container_of(obj, sgl_led_t, obj);
     int16_t cx = 0, cy = 0;
-    const int16_t radius = sgl_max(sgl_obj_get_width(obj) / 2, obj->radius);
     sgl_color_t color = led->status ? led->on_color : led->off_color;
 
     if(evt->type == SGL_EVENT_DRAW_MAIN) {
         sgl_area_t clip = SGL_AREA_MAX;
         sgl_surf_clip_area_return(surf, &obj->area, &clip);
-
+        const int16_t radius = sgl_obj_get_width(obj) / 2;
         cx = (obj->coords.x1 + obj->coords.x2) / 2;
         cy = (obj->coords.y1 + obj->coords.y2) / 2;
 
@@ -123,10 +122,7 @@ sgl_obj_t* sgl_led_create(sgl_obj_t* parent)
  */
 void sgl_led_set_radius(sgl_obj_t *obj, uint8_t radius)
 {
-    if (obj->radius > 0) {
-        sgl_obj_size_zoom(obj, radius - obj->radius);
-    }
-    obj->radius = radius;
+    sgl_obj_circle_zoom(obj, radius);
     sgl_obj_set_dirty(obj);
 }
 

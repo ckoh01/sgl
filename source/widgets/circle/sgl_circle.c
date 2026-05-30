@@ -43,12 +43,24 @@
 static void sgl_circle_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_t *evt)
 {
     sgl_circle_t *circle = sgl_container_of(obj, sgl_circle_t, obj);
-    
-    if(evt->type == SGL_EVENT_DRAW_MAIN) {
-        circle->desc.cx = (circle->obj.coords.x1 + circle->obj.coords.x2) / 2;
-        circle->desc.cy = (circle->obj.coords.y1 + circle->obj.coords.y2) / 2;
 
-        sgl_draw_circle(surf, &obj->area, &circle->desc);
+    if(evt->type == SGL_EVENT_DRAW_MAIN) {
+        const int16_t cx = (obj->coords.x1 + obj->coords.x2) / 2 + circle->x_ofs;
+        const int16_t cy = (obj->coords.y1 + obj->coords.y2) / 2 + circle->y_ofs;
+        const int16_t radius = sgl_obj_get_width(obj) / 2;
+
+        sgl_draw_circle_t desc = {
+            .alpha = circle->alpha,
+            .color = circle->color,
+            .pixmap = circle->pixmap,
+            .border = obj->border,
+            .border_color = circle->border_color,
+            .radius = radius,
+            .cx = cx,
+            .cy = cy,
+        };
+
+        sgl_draw_circle(surf, &obj->area, &desc);
     }
 }
 
@@ -74,11 +86,11 @@ sgl_obj_t* sgl_circle_create(sgl_obj_t* parent)
     obj->construct_fn = sgl_circle_construct_cb;
     sgl_obj_set_border_width(obj, SGL_THEME_BORDER_WIDTH);
 
-    circle->desc.alpha = SGL_ALPHA_MAX;
-    circle->desc.color = SGL_THEME_COLOR;
-    circle->desc.pixmap = NULL;
-    circle->desc.border = SGL_THEME_BORDER_WIDTH;
-    circle->desc.border_color = SGL_THEME_BORDER_COLOR;
+    circle->alpha = SGL_ALPHA_MAX;
+    circle->color = SGL_THEME_COLOR;
+    circle->pixmap = NULL;
+    obj->border = SGL_THEME_BORDER_WIDTH;
+    circle->border_color = SGL_THEME_BORDER_COLOR;
 
     return obj;
 }
@@ -92,7 +104,7 @@ sgl_obj_t* sgl_circle_create(sgl_obj_t* parent)
 void sgl_circle_set_color(sgl_obj_t *obj, sgl_color_t color)
 {
     sgl_circle_t *circle = sgl_container_of(obj, sgl_circle_t, obj);
-    circle->desc.color = color;
+    circle->color = color;
     sgl_obj_set_dirty(obj);
 }
 
@@ -104,11 +116,7 @@ void sgl_circle_set_color(sgl_obj_t *obj, sgl_color_t color)
  */
 void sgl_circle_set_radius(sgl_obj_t *obj, uint16_t radius)
 {
-    sgl_circle_t *circle = sgl_container_of(obj, sgl_circle_t, obj);
-    if (obj->radius > 0) {
-        sgl_obj_size_zoom(obj, radius - obj->radius);
-    }
-    circle->desc.radius = obj->radius = radius;
+    sgl_obj_circle_zoom(obj, radius);
     sgl_obj_set_dirty(obj);
 }
 
@@ -121,7 +129,7 @@ void sgl_circle_set_radius(sgl_obj_t *obj, uint16_t radius)
 void sgl_circle_set_alpha(sgl_obj_t *obj, uint8_t alpha)
 {
     sgl_circle_t *circle = sgl_container_of(obj, sgl_circle_t, obj);
-    circle->desc.alpha = alpha;
+    circle->alpha = alpha;
     sgl_obj_set_dirty(obj);
 }
 
@@ -134,7 +142,7 @@ void sgl_circle_set_alpha(sgl_obj_t *obj, uint8_t alpha)
 void sgl_circle_set_pixmap(sgl_obj_t *obj, const sgl_pixmap_t *pixmap)
 {
     sgl_circle_t *circle = sgl_container_of(obj, sgl_circle_t, obj);
-    circle->desc.pixmap = pixmap;
+    circle->pixmap = pixmap;
     sgl_obj_set_dirty(obj);
 }
 
@@ -147,7 +155,7 @@ void sgl_circle_set_pixmap(sgl_obj_t *obj, const sgl_pixmap_t *pixmap)
 void sgl_circle_set_border_color(sgl_obj_t *obj, sgl_color_t color)
 {
     sgl_circle_t *circle = sgl_container_of(obj, sgl_circle_t, obj);
-    circle->desc.border_color = color;
+    circle->border_color = color;
     sgl_obj_set_dirty(obj);
 }
 
@@ -159,8 +167,32 @@ void sgl_circle_set_border_color(sgl_obj_t *obj, sgl_color_t color)
  */
 void sgl_circle_set_border_width(sgl_obj_t *obj, uint8_t width)
 {
-    sgl_circle_t *circle = sgl_container_of(obj, sgl_circle_t, obj);
-    circle->desc.border = width;
     sgl_obj_set_border_width(obj, width);
+    sgl_obj_set_dirty(obj);
+}
+
+/**
+ * @brief set the x offset of the center of circle
+ * @param obj pointer to the object
+ * @param offset x offset of the circle
+ * @return none
+ */
+void sgl_circle_set_x_offset(sgl_obj_t *obj, int8_t offset)
+{
+    sgl_circle_t *circle = sgl_container_of(obj, sgl_circle_t, obj);
+    circle->x_ofs = offset;
+    sgl_obj_set_dirty(obj);
+}
+
+/**
+ * @brief set the y offset of the center of circle
+ * @param obj pointer to the object
+ * @param offset y offset of the circle
+ * @return none
+ */
+void sgl_circle_set_y_offset(sgl_obj_t *obj, int8_t offset)
+{
+    sgl_circle_t *circle = sgl_container_of(obj, sgl_circle_t, obj);
+    circle->y_ofs = offset;
     sgl_obj_set_dirty(obj);
 }

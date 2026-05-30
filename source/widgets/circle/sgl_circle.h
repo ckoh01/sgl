@@ -25,7 +25,6 @@
 #ifndef __SGL_CIRCLE_H__
 #define __SGL_CIRCLE_H__
 
-
 #include <sgl_core.h>
 #include <sgl_draw.h>
 #include <sgl_math.h>
@@ -34,15 +33,28 @@
 #include <sgl_cfgfix.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @brief draw a circle
  * @obj:  sgl general object
- * @desc: circle description
+ * @alpha:  alpha of the circle
+ * @x_ofs:  x offset of the circle
+ * @y_ofs:  y offset of the circle
+ * @color:  color of the circle
+ * @border_color:  border color of the circle
+ * @pixmap:  pixmap of the circle
  */
 typedef struct sgl_circle {
-    sgl_obj_t         obj;
-    sgl_draw_circle_t desc;
+    sgl_obj_t     obj;
+    uint8_t       alpha;
+    int8_t        x_ofs;
+    int8_t        y_ofs;
+    sgl_color_t   color;
+    sgl_color_t   border_color;
+    const sgl_pixmap_t *pixmap;
 }sgl_circle_t;
 
 
@@ -100,5 +112,25 @@ void sgl_circle_set_border_color(sgl_obj_t *obj, sgl_color_t color);
  * @return none
  */
 void sgl_circle_set_border_width(sgl_obj_t *obj, uint8_t width);
+
+/**
+ * @brief set the x offset of the center of circle
+ * @param obj pointer to the object
+ * @param offset x offset of the circle
+ * @return none
+ */
+void sgl_circle_set_x_offset(sgl_obj_t *obj, int8_t offset);
+
+/**
+ * @brief set the y offset of the center of circle
+ * @param obj pointer to the object
+ * @param offset y offset of the circle
+ * @return none
+ */
+void sgl_circle_set_y_offset(sgl_obj_t *obj, int8_t offset);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // !__SGL_CIRCLE_H__

@@ -33,6 +33,9 @@
 #include <sgl_cfgfix.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @brief sgl 2dball struct
@@ -45,7 +48,6 @@ typedef struct sgl_2dball {
     sgl_color_t     bg_color;
     uint8_t         alpha;
 }sgl_2dball_t;
-
 
 /**
  * @brief create a 2dball object
@@ -85,5 +87,9 @@ void sgl_2dball_set_alpha(sgl_obj_t *obj, uint8_t alpha);
  * @return none
  */
 void sgl_2dball_set_radius(sgl_obj_t *obj, uint16_t radius);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // !__SGL_2DBALL_H__

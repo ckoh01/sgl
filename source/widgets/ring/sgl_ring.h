@@ -34,20 +34,23 @@
 #include <sgl_cfgfix.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @brief sgl ring
  * @obj: sgl general object
- * @desc: ring draw description
+ * @color: ring color
+ * @width: ring width
+ * @alpha: ring alpha
  */
 typedef struct sgl_ring {
     sgl_obj_t        obj;
     sgl_color_t      color;
-    int16_t          radius_in;
-    int16_t          radius_out;
+    uint8_t          width;
     uint8_t          alpha;
 } sgl_ring_t;
-
 
 /**
  * @brief Create a ring object
@@ -81,5 +84,9 @@ void sgl_ring_set_alpha(sgl_obj_t *obj, uint8_t alpha);
  * @return none
  */
 void sgl_ring_set_radius(sgl_obj_t *obj, uint16_t radius_in, uint16_t radius_out);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // !__SGL_RING_H__

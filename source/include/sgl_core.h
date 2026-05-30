@@ -1320,6 +1320,14 @@ static inline void sgl_obj_move_child_pos_y(sgl_obj_t *obj, int16_t ofs_y)
 void sgl_obj_size_zoom(sgl_obj_t *obj, int16_t zoom);
 
 /**
+ * @brief zoom object circle size
+ * @param obj point to object
+ * @param radius circle radius
+ * @return none
+ */
+void sgl_obj_circle_zoom(sgl_obj_t *obj, int16_t radius);
+
+/**
  * @brief move object up a level layout
  * @param obj point to object
  * @return none

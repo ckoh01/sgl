@@ -42,6 +42,7 @@ static void sgl_2dball_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_
         sgl_area_t clip = SGL_AREA_MAX;
         sgl_surf_clip_area_return(surf, &obj->area, &clip);
 
+        const int16_t radius = sgl_obj_get_width(obj) / 2;
         cx = (obj->coords.x1 + obj->coords.x2) / 2;
         cy = (obj->coords.y1 + obj->coords.y2) / 2;
 
@@ -49,7 +50,7 @@ static void sgl_2dball_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_
         int cx2 = 2 * cx + 1;
         int cy2 = 2 * cy + 1;
         int dx2 = 0, dy2 = 0;
-        const int diameter = obj->radius << 1;
+        const int diameter = radius << 1;
         const int r2_max = sgl_pow2(diameter);
         const int r2 = sgl_max(sgl_pow2(diameter - 3), 0); 
         const int r2_fix_diff = (SGL_ALPHA_MAX  << SGL_FIXED_SHIFT) / sgl_max(r2_max - r2, 1);
@@ -160,9 +161,6 @@ void sgl_2dball_set_alpha(sgl_obj_t *obj, uint8_t alpha)
  */
 void sgl_2dball_set_radius(sgl_obj_t *obj, uint16_t radius)
 {
-    if (obj->radius > 0) {
-        sgl_obj_size_zoom(obj, radius - obj->radius);
-    }
-    obj->radius = radius;
+    sgl_obj_circle_zoom(obj, radius);
     sgl_obj_set_dirty(obj);
 }

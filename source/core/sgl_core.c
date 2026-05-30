@@ -279,6 +279,23 @@ void sgl_obj_size_zoom(sgl_obj_t *obj, int16_t zoom)
 }
 
 /**
+ * @brief zoom object circle size
+ * @param obj point to object
+ * @param radius circle radius
+ * @return none
+ */
+void sgl_obj_circle_zoom(sgl_obj_t *obj, int16_t radius)
+{
+    const int16_t cx = (obj->coords.x1 + obj->coords.x2) / 2;
+    const int16_t cy = (obj->coords.y1 + obj->coords.y2) / 2;
+    obj->coords.x1 = cx - radius + 1;
+    obj->coords.x2 = cx + radius;
+    obj->coords.y1 = cy - radius + 1;
+    obj->coords.y2 = cy + radius;
+    obj->radius = radius;
+}
+
+/**
  * @brief get last child of an object
  * @param obj the object
  * @return the last child of the object
