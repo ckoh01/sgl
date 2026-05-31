@@ -391,7 +391,8 @@ static void sgl_keyboard_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
     /* calculate button height */
     sgl_split_len(keybd_btn_height, KEYBOARD_BTN_LINES, body_h, keyboard->key_margin, btn_height);
 
-    if(evt->type == SGL_EVENT_DRAW_MAIN) {
+    switch (evt->type) {
+    case SGL_EVENT_DRAW_MAIN:
         sgl_draw_rect(surf, &obj->area, &obj->coords, &keyboard->body_desc);
 
         btn_coords.y1 = obj->coords.y1;
@@ -437,10 +438,10 @@ static void sgl_keyboard_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
 
             btn_coords.y1 += btn_height[i];
         }
-
         keyboard->btn_desc.color = btn_color;
-    }
-    else if (evt->type == SGL_EVENT_PRESSED || evt->type == SGL_EVENT_KEY_ENTER) {
+        break;
+    
+    case SGL_EVENT_PRESSED:
         index = keyboard_pos_to_index(evt->pos.x, evt->pos.y, keyboard, body_w, body_h, &keyboard->btn_area);
         if  (evt->type == SGL_EVENT_PRESSED) {
             if(index < 0) {
@@ -477,12 +478,35 @@ static void sgl_keyboard_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
         }
 
         sgl_obj_update_area(&keyboard->btn_area);
-    }
-    else if(evt->type == SGL_EVENT_RELEASED) {
+        break;
+    
+    case SGL_EVENT_RELEASED:
         sgl_obj_update_area(&keyboard->btn_area);
         keyboard->key_index = KEYBOARD_KEY_INVALID;
-    }
-    else if(evt->type == SGL_EVENT_DRAW_INIT) {
+        break;
+
+    case SGL_EVENT_KEY_LEFT:
+    case SGL_EVENT_KEY_RIGHT:
+    case SGL_EVENT_KEY_UP:
+    case SGL_EVENT_KEY_DOWN:
+        if (evt->type == SGL_EVENT_KEY_LEFT || evt->type == SGL_EVENT_KEY_DOWN) {
+            keyboard->key_index--;
+            if (keyboard->key_index < 0) {
+                keyboard->key_index = KEYBOARD_BTN_NUM - 1;
+            }
+        }
+
+        if (evt->type == SGL_EVENT_KEY_RIGHT || evt->type == SGL_EVENT_KEY_UP) {
+            keyboard->key_index++;
+            if (keyboard->key_index >= KEYBOARD_BTN_NUM) {
+                keyboard->key_index = 0;
+            }
+        }
+        sgl_obj_update_area(&keyboard->btn_area);
+        sgl_obj_set_dirty(obj);
+        break;
+
+    case SGL_EVENT_DRAW_INIT:
         keyboard->opcode = 0;
         keyboard->key_index = KEYBOARD_KEY_INVALID;
 
@@ -495,14 +519,10 @@ static void sgl_keyboard_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
         }
 
         SGL_ASSERT(keyboard->font != NULL);
-    }
-    else if (evt->type == SGL_EVENT_KEY_RIGHT) {
-        keyboard->key_index ++;
+        break;
 
-        if (keyboard->key_index >= KEYBOARD_BTN_NUM) {
-            keyboard->key_index = 0;
-        }
-        sgl_obj_update_area(&keyboard->btn_area);
+    default:
+        break;
     }
     return;
 dirty:
@@ -530,6 +550,7 @@ sgl_obj_t* sgl_keyboard_create(sgl_obj_t* parent)
     sgl_obj_init(&keyboard->obj, parent);
     obj->construct_fn = sgl_keyboard_construct_cb;
     sgl_obj_set_border_width(obj, SGL_THEME_BORDER_WIDTH);
+    sgl_obj_set_editable(obj);
 
     obj->clickable = 1;
     obj->needinit  = 1;
