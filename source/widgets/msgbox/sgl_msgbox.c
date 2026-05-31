@@ -153,9 +153,13 @@ static void sgl_msgbox_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_
             msgbox->status |= SGL_MSGBOX_STATUS_EXIT;
             sgl_obj_set_destroyed(obj);
         }
+        else if (evt->pos.x == SGL_POS_MIN && evt->pos.y == SGL_POS_MIN) {
+            msgbox->status |= SGL_MSGBOX_STATUS_EXIT;
+            sgl_event_key_send_signal(evt, SGL_EVENT_DESTROYED);
+            sgl_obj_set_destroyed(obj);
+        }
         else {
             sgl_obj_clear_dirty(obj);
-            return;
         }
     }
     else if (evt->type == SGL_EVENT_KEY_LEFT || evt->type == SGL_EVENT_KEY_RIGHT) {
@@ -176,11 +180,7 @@ static void sgl_msgbox_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_
         }
         sgl_obj_update_area(&button_coords);
     }
-    else if (evt->type == SGL_EVENT_KEY_ENTER) {
-        sgl_obj_set_destroyed(obj);
-    }
 }
-
 
 /**
  * @brief create a message box object
@@ -202,6 +202,7 @@ sgl_obj_t* sgl_msgbox_create(sgl_obj_t* parent)
     sgl_obj_init(&msgbox->obj, parent);
     obj->construct_fn = sgl_msgbox_construct_cb;
     sgl_obj_set_border_width(obj, SGL_THEME_BORDER_WIDTH);
+    sgl_obj_set_editable(obj);
 
     msgbox->body_desc.alpha = SGL_THEME_ALPHA;
     msgbox->body_desc.color = SGL_THEME_COLOR;

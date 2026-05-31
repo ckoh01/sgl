@@ -329,6 +329,27 @@ void sgl_event_key_enter_released(void);
  */
 void sgl_event_key_esc(void);
 
+/**
+ * @brief Send signal to key event
+ * @param evt The event to send signal
+ * @param signal The signal to send
+ * @return none
+ */
+static inline void sgl_event_key_send_signal(sgl_event_t *evt, sgl_event_type_t signal)
+{
+    evt->type = signal;
+}
+
+/**
+ * @brief Get signal from key event
+ * @param evt The event to get signal
+ * @return The signal of the event
+ */
+static inline sgl_event_type_t sgl_event_key_get_signal(sgl_event_t *evt)
+{
+    return evt->type;
+}
+
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif

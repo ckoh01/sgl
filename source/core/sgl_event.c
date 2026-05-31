@@ -81,6 +81,7 @@ struct sgl_group_node {
 struct event_key_context {
     struct sgl_obj *focused;
     bool            editing;
+    bool            pressed;
     struct sgl_group_node *grp_head;
     struct sgl_group_node *grp_tail;
 };
@@ -90,7 +91,7 @@ struct event_key_context key_ctx = {
     .focused = NULL,
     .editing = false,
     .grp_head = NULL,
-    .grp_tail = NULL
+    .grp_tail = NULL,
 };
 
 /**
@@ -540,16 +541,18 @@ static void event_set_focus(struct sgl_obj *obj, bool flag)
 /**
  * @brief Callback function for event type
  * @param obj The object that triggered the event
+ * @param evt The event
  * @param type The type of the event
  * @return none
  */
-static void event_type_callback(struct sgl_obj *obj, sgl_event_type_t type)
+static void event_type_callback(struct sgl_obj *obj, sgl_event_t *evt, sgl_event_type_t type)
 {
-    sgl_event_t evt;
-    evt.param = obj->event_data;
-    evt.type = type;
-    evt.obj = obj;
-    obj->construct_fn(NULL, obj, &evt);
+    evt->param = obj->event_data;
+    evt->type = type;
+    evt->obj = obj;
+    evt->pos.x = SGL_POS_MIN;
+    evt->pos.y = SGL_POS_MIN;
+    obj->construct_fn(NULL, obj, evt);
 }
 
 /**
@@ -644,8 +647,13 @@ void sgl_event_key_remove_group(struct sgl_obj *obj)
     if (pos != NULL) {
         pos->prev->next = pos->next;
         pos->next->prev = pos->prev;
+
+        if (obj == key_ctx.focused) {
+            key_ctx.focused = pos->prev->obj;
+            key_ctx.editing = false;
+        }
         sgl_free(pos);
-    }    
+    }
 }
 
 /**
@@ -656,12 +664,13 @@ void sgl_event_key_remove_group(struct sgl_obj *obj)
  */
 void sgl_event_key_up(void)
 {
+    sgl_event_t evt;
     if (!key_ctx.focused || !key_ctx.grp_head) {
         return;
     }
 
     if (key_ctx.editing) {
-        event_type_callback(key_ctx.focused, SGL_EVENT_KEY_UP);
+        event_type_callback(key_ctx.focused, &evt, SGL_EVENT_KEY_UP);
     }
     else {
         struct sgl_group_node *curr_node = get_focused_node();
@@ -681,12 +690,13 @@ void sgl_event_key_up(void)
  */
 void sgl_event_key_down(void)
 {
+    sgl_event_t evt;
     if (!key_ctx.focused || !key_ctx.grp_head) {
         return;
     }
 
     if (key_ctx.editing) {
-        event_type_callback(key_ctx.focused, SGL_EVENT_KEY_DOWN);
+        event_type_callback(key_ctx.focused, &evt, SGL_EVENT_KEY_DOWN);
     }
     else {
         struct sgl_group_node *curr_node = get_focused_node();
@@ -706,12 +716,13 @@ void sgl_event_key_down(void)
  */
 void sgl_event_key_left(void)
 {
+    sgl_event_t evt;
     if (!key_ctx.focused || !key_ctx.grp_head) {
         return;
     }
 
     if (key_ctx.editing) {
-        event_type_callback(key_ctx.focused, SGL_EVENT_KEY_LEFT);
+        event_type_callback(key_ctx.focused, &evt, SGL_EVENT_KEY_LEFT);
     }
     else {
         struct sgl_group_node *curr_node = get_focused_node();
@@ -731,12 +742,13 @@ void sgl_event_key_left(void)
  */
 void sgl_event_key_right(void)
 {
+    sgl_event_t evt;
     if (!key_ctx.focused || !key_ctx.grp_head) {
         return;
     }
 
     if (key_ctx.editing) {
-        event_type_callback(key_ctx.focused, SGL_EVENT_KEY_RIGHT);
+        event_type_callback(key_ctx.focused, &evt, SGL_EVENT_KEY_RIGHT);
     }
     else {
         struct sgl_group_node *curr_node = get_focused_node();
@@ -756,19 +768,22 @@ void sgl_event_key_right(void)
  */
 void sgl_event_key_enter_pressed(void)
 {
+    sgl_event_t evt;
     if (!key_ctx.focused || !key_ctx.grp_head) {
         return;
     }
 
     if (!sgl_obj_is_editable(key_ctx.focused)) {
-        event_type_callback(key_ctx.focused, SGL_EVENT_PRESSED);
+        event_type_callback(key_ctx.focused, &evt, SGL_EVENT_PRESSED);
+        key_ctx.pressed = true;
     }
     else {
         if (key_ctx.editing == false) {
             key_ctx.editing = true;
         }
         else {
-            event_type_callback(key_ctx.focused, SGL_EVENT_PRESSED);
+            event_type_callback(key_ctx.focused, &evt, SGL_EVENT_PRESSED);
+            key_ctx.pressed = true;
         }
     }
 }
@@ -781,10 +796,18 @@ void sgl_event_key_enter_pressed(void)
  */
 void sgl_event_key_enter_released(void)
 {
+    sgl_event_t evt;
     if (!key_ctx.focused || !key_ctx.grp_head) {
         return;
     }
-    event_type_callback(key_ctx.focused, SGL_EVENT_RELEASED);
+    if (key_ctx.pressed) {
+        event_type_callback(key_ctx.focused, &evt, SGL_EVENT_RELEASED);
+        key_ctx.pressed = false;
+
+        if (sgl_event_key_get_signal(&evt) == SGL_EVENT_DESTROYED) {
+            sgl_event_key_remove_group(key_ctx.focused);
+        }
+    }
 }
 
 /**
@@ -795,12 +818,13 @@ void sgl_event_key_enter_released(void)
  */
 void sgl_event_key_esc(void)
 {
+    sgl_event_t evt;
     if (!key_ctx.focused || !key_ctx.grp_head) {
         return;
     }
 
     if (key_ctx.editing) {
         key_ctx.editing = false;
-        event_type_callback(key_ctx.focused, SGL_EVENT_KEY_ESC);
+        event_type_callback(key_ctx.focused, &evt, SGL_EVENT_KEY_ESC);
     }
 }
