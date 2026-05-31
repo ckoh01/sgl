@@ -500,7 +500,6 @@ typedef struct sgl_fbdev {
  * @angle: angle value only for rotation
  */
 typedef struct sgl_system {
-    void               (*logdev)(const char *str);
     sgl_fbdev_t        fbdev;
     volatile uint32_t  last_tick;
     volatile uint32_t  tick_ms;
@@ -510,6 +509,9 @@ typedef struct sgl_system {
 #elif (CONFIG_SGL_FBDEV_RUNTIME_ROTATION)
     sgl_color_t        *rotation;
     uint16_t            angle;
+#endif
+#if (CONFIG_SGL_DEBUG)
+    void               (*logdev)(const char *str);
 #endif
 } sgl_system_t;
 
@@ -757,7 +759,11 @@ void sgl_fbdev_set_angle(uint16_t angle);
  */
 static inline void sgl_logdev_register(void (*puts)(const char *str))
 {
+#if (CONFIG_SGL_DEBUG)
     sgl_system.logdev = puts;
+#else
+    SGL_UNUSED(puts);
+#endif
 }
 
 /**
@@ -768,9 +774,13 @@ static inline void sgl_logdev_register(void (*puts)(const char *str))
  */
 static inline void sgl_log_stdout(const char *str)
 {
+#if (CONFIG_SGL_DEBUG)
     if (sgl_system.logdev) {
         sgl_system.logdev(str);
     }
+#else
+    SGL_UNUSED(str);
+#endif
 }
 
 /**

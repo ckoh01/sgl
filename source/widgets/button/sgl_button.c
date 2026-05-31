@@ -56,7 +56,8 @@ static void sgl_button_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_
         .radius = obj->radius,
     };
 
-    if(evt->type == SGL_EVENT_DRAW_MAIN) {
+    switch (evt->type) {
+    case SGL_EVENT_DRAW_MAIN:
         sgl_draw_rect(surf, &obj->area, &obj->coords, &rect);
 
         if(button->text) {
@@ -66,18 +67,24 @@ static void sgl_button_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_
                                                      sgl_color_mixer(button->text_color, button->color, SGL_ALPHA_UNCLICKABLE);
             sgl_draw_string(surf, &obj->area, align_pos.x, align_pos.y, button->text, text_color, button->alpha, button->font);
         }
-    }
-    else if(evt->type == SGL_EVENT_PRESSED) {
+        break;
+
+    case SGL_EVENT_PRESSED:
         if(sgl_obj_is_flexible(obj)) {
             sgl_obj_size_zoom(obj, 2);
         }
         sgl_obj_set_dirty(obj);
-    }
-    else if(evt->type == SGL_EVENT_RELEASED) {
+        break;
+
+    case SGL_EVENT_RELEASED:
         if(sgl_obj_is_flexible(obj)) {
             sgl_obj_size_zoom(obj, -2);
         }
         sgl_obj_set_dirty(obj);
+        break;
+
+    default:
+        break;
     }
 }
 
