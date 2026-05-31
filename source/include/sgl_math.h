@@ -25,7 +25,6 @@
 #ifndef __SGL_MATH_H__
 #define __SGL_MATH_H__
 
-
 #include <sgl_types.h>
 #include <stddef.h>
 
@@ -33,11 +32,9 @@
 extern "C" {
 #endif
 
-
 #define sgl_min(a, b)                     ((a) < (b) ? (a) : (b))
 #define sgl_min3(a, b, c)                 (sgl_min(sgl_min((a), (b)), (c)))
 #define sgl_min4(a, b, c, d)              (sgl_min(sgl_min((a), (b)), sgl_min((c), (d))))
-
 
 #define sgl_max(a, b)                     ((a) > (b) ? (a) : (b))
 #define sgl_max3(a, b, c)                 (sgl_max(sgl_max((a), (b)), (c)))
@@ -69,7 +66,6 @@ extern "C" {
 #define SGL_SIN_FIXED_ONE                 (32768)
 #define SGL_COS_FIXED_ONE                 (32768)
 
-
 /**
  * @brief Normalize an angle to the range of 0 to 360 degrees.
  * @param angle: Angle in degrees such 0-359
@@ -86,7 +82,6 @@ static inline int16_t sgl_mod360(int16_t angle)
     return angle;
 }
 
-
 /**
  * @brief Calculate the sine of an angle
  * @param angle: Angle in degrees such 0-359
@@ -94,7 +89,6 @@ static inline int16_t sgl_mod360(int16_t angle)
  * @note This function has implemented angle normalization to the range of 0 to 360 degrees.
  */
 int32_t sgl_sin(int16_t angle);
-
 
 /**
  * @brief Calculate the cos of an angle
@@ -107,7 +101,6 @@ static inline int32_t sgl_cos(int16_t angle)
     return sgl_sin(angle + 90);
 }
 
-
 /**
  * @brief  Calculate x number square root
  * @param  x: x number
@@ -115,14 +108,12 @@ static inline int32_t sgl_cos(int16_t angle)
  */
 uint16_t sgl_sqrt(uint32_t x);
 
-
 /**
  * @brief Calculate error of the square root for a number.
  * @param x The number to calculate the error for.
  * @return The error of the square root. [0 ~ 255]
  */
 uint8_t sgl_sqrt_error(uint32_t x);
-
 
 /**
  * @brief Calculate the angle based on the x and y coordinates. This function is a fast algorithm
@@ -135,7 +126,6 @@ uint8_t sgl_sqrt_error(uint32_t x);
  */
 int32_t sgl_atan2_raw(int x, int y);
 
-
 /**
  * @brief Calculate the angle based on the x and y coordinates. This function is a fast algorithm 
  *        implementation, with reference address: www.RomanBlack.com (Fast XY vector to integer degree algorithm)
@@ -146,7 +136,6 @@ int32_t sgl_atan2_raw(int x, int y);
  * @note return angle [0 ~ 359]
 */
 uint16_t sgl_atan2_angle(int x, int y);
-
 
 /**
  * @brief Split the length into n parts, with the weight of each part.
@@ -159,7 +148,6 @@ uint16_t sgl_atan2_angle(int x, int y);
  */
 void sgl_split_len(const uint8_t *weight, int count, int16_t length, int16_t gap, int16_t *out);
 
-
 /**
  * @brief Split the length into n parts, with the weight of each part.
  * @param length: The length to split.
@@ -169,7 +157,6 @@ void sgl_split_len(const uint8_t *weight, int count, int16_t length, int16_t gap
  * @note The average method of Bresenham's algorithm
  */
 void sgl_split_len_avg(int length, int count, int16_t gap, int16_t *out);
-
 
 /**
  * @brief Calculate whether the x and y coordinates have a component.
@@ -184,7 +171,6 @@ static inline int sgl_xy_has_component( int x, int y, int xv, int yv)
     return ((x != 0 && ((xv ^ x) < 0)) || (y != 0 && ((yv ^ y) < 0)));
 }
 
-
 /**
  * @brief Generate a random number.
  * @param none
@@ -193,14 +179,12 @@ static inline int sgl_xy_has_component( int x, int y, int xv, int yv)
  */
 int16_t sgl_rand(void);
 
-
 /**
  * @brief Set the seed of the random number generator.
  * @param seed: The seed of the random number generator.
  * @return none
  */
 void sgl_srand(unsigned int seed);
-
 
 #ifdef __cplusplus
 }

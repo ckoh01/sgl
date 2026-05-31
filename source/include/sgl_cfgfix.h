@@ -31,7 +31,6 @@
 extern "C" {
 #endif
 
-
 /**
  * @brief sgl config fix file, it will fix the macro if not defined
  * @note please add the macro in this file if you want to add new macro into source code

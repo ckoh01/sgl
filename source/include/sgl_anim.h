@@ -29,7 +29,6 @@
 extern "C" {
 #endif
 
-
 #include <sgl_cfgfix.h>
 #include <stddef.h>
 #include <sgl_list.h>
@@ -42,11 +41,9 @@ extern "C" {
 struct sgl_pos;
 struct sgl_anim;
 
-
 /* Anim path callback */
 typedef void (*sgl_anim_path_cb_t)(struct sgl_anim *anim, int32_t value);
 typedef int32_t (*sgl_anim_path_algo_t)(uint16_t elaps, uint16_t duration, int32_t start, int32_t end);
-
 
 /**
  * @brief Animation object structure used to manage a single animation instance.
@@ -111,10 +108,8 @@ typedef struct sgl_anim {
     void                  (*finish_cb)(struct sgl_anim *anim);
 } sgl_anim_t;
 
-
 #define  SGL_ANIM_REPEAT_LOOP                          (0x3FFF)
 #define  SGL_ANIM_REPEAT_ONCE                          (1)
-
 
 /**
  * @brief  Animation static initialization
@@ -123,14 +118,12 @@ typedef struct sgl_anim {
  */
 void sgl_anim_init(sgl_anim_t *anim);
 
-
 /**
  * @brief dynamic alloc animation object with initialization
  * @param  none
  * @return animation object
 */
 sgl_anim_t* sgl_anim_create(void);
-
 
 /**
  * @brief start animation
@@ -140,7 +133,6 @@ sgl_anim_t* sgl_anim_create(void);
 */
 void sgl_anim_start(sgl_anim_t *anim, uint32_t repeat_cnt);
 
-
 /**
  * @brief stop animation
  * @param  anim animation object
@@ -148,14 +140,12 @@ void sgl_anim_start(sgl_anim_t *anim, uint32_t repeat_cnt);
 */
 void sgl_anim_stop(sgl_anim_t *anim);
 
-
 /**
  * @brief delete animation object
  * @param anim animation object
  * @return none
 */
 void sgl_anim_delete(sgl_anim_t *anim);
-
 
 /**
  * @brief set animation private data
@@ -168,7 +158,6 @@ static inline void sgl_anim_set_data(sgl_anim_t *anim, void *data)
     SGL_ASSERT(anim != NULL);
     anim->data = data;
 }
-
 
 /**
  * @brief set animation path callback function
@@ -184,7 +173,6 @@ static inline void sgl_anim_set_path(sgl_anim_t *anim, sgl_anim_path_cb_t path_c
     anim->path_algo = path_algo;
 }
 
-
 /**
  * @brief set animation start value
  * @param  anim animation object
@@ -196,7 +184,6 @@ static inline void sgl_anim_set_start_value(sgl_anim_t *anim, int32_t value)
     SGL_ASSERT(anim != NULL);
     anim->start_value = value;
 }
-
 
 /**
  * @brief set animation end value
@@ -210,7 +197,6 @@ static inline void sgl_anim_set_end_value(sgl_anim_t *anim, int32_t value)
     anim->end_value = value;
 }
 
-
 /**
  * @brief set animation active delay time, ms
  * @param  anim animation object
@@ -222,7 +208,6 @@ static inline void sgl_anim_set_act_delay(sgl_anim_t *anim, uint32_t delay_ms)
     SGL_ASSERT(anim != NULL);
     anim->act_delay = delay_ms;
 }
-
 
 /**
  * @brief set animation active duration time, ms
@@ -236,7 +221,6 @@ static inline void sgl_anim_set_act_duration(sgl_anim_t *anim, uint32_t duration
     anim->act_duration = duration_ms;
 }
 
-
 /**
  * @brief set finish callback for animation
  * @param  anim animation object
@@ -249,7 +233,6 @@ static inline void sgl_anim_set_finish_cb(sgl_anim_t *anim, void (*finish_cb)(sg
     anim->finish_cb = finish_cb;
 }
 
-
 /**
  * @brief check animation is finished or not
  * @param  anim animation object
@@ -260,7 +243,6 @@ static inline bool sgl_anim_is_finished(sgl_anim_t *anim)
     SGL_ASSERT(anim != NULL);
     return (bool)anim->finished;
 }
-
 
 /**
  * @brief set auto free flag for animation
@@ -273,7 +255,6 @@ static inline void sgl_anim_set_auto_free(sgl_anim_t *anim)
     anim->auto_free = 1;
 }
 
-
 /**
  * @brief animation task, it will foreach all animation
  * @param  none
@@ -281,7 +262,6 @@ static inline void sgl_anim_set_auto_free(sgl_anim_t *anim)
  * @note   this function should be called in sgl_task()
  */
 void sgl_anim_task(void);
-
 
 /**
  * Linear animation path calculation function
@@ -304,7 +284,6 @@ void sgl_anim_task(void);
 int32_t sgl_anim_path_linear(uint16_t elaps, uint16_t duration, int32_t start, int32_t end);
 #define SGL_ANIM_PATH_LINEAR  sgl_anim_path_linear
 
-
 /**
  * sgl_anim_path_ease_in_out - Cubic ease-in-out animation path
  *
@@ -319,7 +298,6 @@ int32_t sgl_anim_path_linear(uint16_t elaps, uint16_t duration, int32_t start, i
  */
 int32_t sgl_anim_path_ease_in_out(uint16_t elaps, uint16_t duration, int32_t start, int32_t end);
 #define SGL_ANIM_PATH_EASE_IN_OUT  sgl_anim_path_ease_in_out
-
 
 /**
  * sgl_anim_path_ease_in - Cubic ease-in animation path
@@ -336,7 +314,6 @@ int32_t sgl_anim_path_ease_in_out(uint16_t elaps, uint16_t duration, int32_t sta
 int32_t sgl_anim_path_ease_out(uint16_t elaps, uint16_t duration, int32_t start, int32_t end);
 #define SGL_ANIM_PATH_EASE_OUT  sgl_anim_path_ease_out
 
-
 /**
  * sgl_anim_path_ease_in - Cubic ease-in animation path
  *
@@ -351,7 +328,6 @@ int32_t sgl_anim_path_ease_out(uint16_t elaps, uint16_t duration, int32_t start,
  */
 int32_t sgl_anim_path_ease_in(uint16_t elaps, uint16_t duration, int32_t start, int32_t end);
 #define SGL_ANIM_PATH_EASE_IN  sgl_anim_path_ease_in
-
 
 /**
  * sgl_anim_path_overshoot - Overshoot animation path
@@ -368,7 +344,6 @@ int32_t sgl_anim_path_ease_in(uint16_t elaps, uint16_t duration, int32_t start, 
  */
 int32_t sgl_anim_path_overshoot(uint16_t elaps, uint16_t duration, int32_t start, int32_t end);
 #define SGL_ANIM_PATH_OVERSHOOT  sgl_anim_path_overshoot
-
 
 #endif // ! CONFIG_SGL_ANIMATION
 

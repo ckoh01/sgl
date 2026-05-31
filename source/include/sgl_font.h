@@ -22,10 +22,8 @@
  * SOFTWARE.
  */
 
-
 #ifndef __SGL_FONT_H__
 #define __SGL_FONT_H__
-
 
 #include <sgl_cfgfix.h>
 #include <stddef.h>

@@ -286,6 +286,7 @@ void sgl_obj_size_zoom(sgl_obj_t *obj, int16_t zoom)
  */
 void sgl_obj_circle_zoom(sgl_obj_t *obj, int16_t radius)
 {
+    SGL_ASSERT(obj != NULL);
     const int16_t cx = (obj->coords.x1 + obj->coords.x2) / 2;
     const int16_t cy = (obj->coords.y1 + obj->coords.y2) / 2;
     obj->coords.x1 = cx - radius + 1;

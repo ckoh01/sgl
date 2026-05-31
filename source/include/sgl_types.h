@@ -25,16 +25,13 @@
 #ifndef __SGL_TYPES_H__
 #define __SGL_TYPES_H__
 
-
 #include <stdint.h>
 #include <stdbool.h>
 #include <sgl_cfgfix.h>
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 /**
  * @brief Get the offset of internal members of the structure
@@ -46,7 +43,6 @@ extern "C" {
 */
 #define sgl_offsetof(struct_t, member)          ((size_t)&((struct_t*)0)->member)
 
-
 /**
  * @brief Get the address of the structure instance.
  *
@@ -57,17 +53,14 @@ extern "C" {
  */
 #define sgl_container_of(ptr, type, member)     ((type *)((char *)ptr - sgl_offsetof(type, member)))
 
-
 #ifndef SGL_ARRAY_SIZE
 #define SGL_ARRAY_SIZE(array)                   (sizeof(array) / sizeof(array[0]))
 #endif
-
 
 #define SGL_ALIGN_UP(x, align)                  (((x) + ((align) - 1)) & ~((align) - 1))
 #define SGL_ROUND_UP(x, round)                  ((((x) + ((round) - 1)) / (round)) * (round))
 
 #define SGL_UNUSED(x)                           (void)(x)
-
 
 #define SGL_POS_INVALID                         (0xefff)
 #define SGL_POS_MAX                             (8192)
@@ -118,6 +111,12 @@ extern "C" {
 #define  SGL_PIXMAP_FMT_RLE_ARGB8888            (12)
 #define  SGL_PIXMAP_FMT_MAX                     (13)
 
+/* the font format */
+#define  SGL_FONT_FMT_NORMAL                    (0)
+#define  SGL_FONT_FMT_COMPRESSED                (1)
+#define  SGL_FONT_FMT_EXT_FLASH                 (2)
+#define  SGL_FONT_FMT_TRUETYPE                  (3)
+#define  SGL_FONT_FMT_MAX                       (4)
 
 #ifdef __GNUC__            /* gcc compiler   */
 #ifndef likely
@@ -173,10 +172,8 @@ extern "C" {
 #warning "Weak linkage not supported for this compiler"                    
 #endif
 
-
 #define  sgl_check_ptr_break(ptr)               if (unlikely((ptr) == NULL)) { SGL_LOG_ERROR("Function: %s, Line: %d, "#ptr" is NULL", __func__, __LINE__); return;}
 #define  sgl_check_ptr_return(ptr, r)           if (unlikely((ptr) == NULL)) { SGL_LOG_ERROR("Function: %s, Line: %d, "#ptr" is NULL", __func__, __LINE__); return (r);}
-
 
 /**
  * @brief Run once function
@@ -286,7 +283,6 @@ extern "C" {
 
 #endif
 
-
 /**
  * Define some basic colors
 */
@@ -349,7 +345,6 @@ extern "C" {
 #define SGL_COLOR_MISTY_ROSE                    sgl_rgb(0xFF, 0xE4, 0xE1)
 #define SGL_COLOR_SEASHELL                      sgl_rgb(0xFF, 0xF5, 0xEE)
 #define SGL_COLOR_FLORAL_WHITE                  sgl_rgb(0xFF, 0xFA, 0xF0)
-
 
 #ifdef __cplusplus
 }

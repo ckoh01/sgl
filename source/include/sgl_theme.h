@@ -31,7 +31,6 @@
 extern "C" {
 #endif
 
-
 #if (CONFIG_SGL_THEME_DEFAULT)
 #define SGL_THEME_DESKTOP                    sgl_rgb(255, 255, 255)
 #define SGL_THEME_COLOR                      sgl_rgb(255, 255, 255)
@@ -45,7 +44,6 @@ extern "C" {
 #define SGL_THEME_SCROLL_BG_COLOR            sgl_rgb(100, 100, 100)
 #define SGL_THEME_SCROLL_FG_COLOR            sgl_rgb(200, 200, 200)
 
-
 #elif (CONFIG_SGL_THEME_DARK)
 #define SGL_THEME_DESKTOP                    sgl_rgb(10, 10, 10)
 #define SGL_THEME_COLOR                      sgl_rgb(50, 50, 50)
@@ -57,7 +55,6 @@ extern "C" {
 #define SGL_THEME_RADIUS                     0
 #define SGL_THEME_SCROLL_BG_COLOR            sgl_rgb(100, 100, 100)
 #define SGL_THEME_SCROLL_FG_COLOR            sgl_rgb(200, 200, 200)
-
 
 #elif (CONFIG_SGL_THEME_LIGHT)
 #define SGL_THEME_COLOR                      sgl_rgb(189, 212, 243)

@@ -25,7 +25,6 @@
 #ifndef __SGL_MM_H__
 #define __SGL_MM_H__
 
-
 #include <sgl_core.h>
 
 #ifdef __cplusplus
@@ -49,7 +48,6 @@ typedef struct sgl_mm_monitor {
 
 } sgl_mm_monitor_t;
 
-
 /**
  * @brief  initialize memory pool
  * @param  mem_start  start address of memory pool
@@ -57,14 +55,12 @@ typedef struct sgl_mm_monitor {
  */
 void sgl_mm_init(void *mem_start, size_t len);
 
-
 /**
  * @brief  add memory pool
  * @param  mem_start  start address of memory pool
  * @param  len  length of memory pool
  */
 void sgl_mm_add_pool(void *mem_start, size_t len);
-
 
 /**
  * @brief  memory alloc, the function is unsafe, you should ensure that 
@@ -76,7 +72,6 @@ void sgl_mm_add_pool(void *mem_start, size_t len);
 */
 void* sgl_malloc(size_t size);
 
-
 /**
  * @brief  memory realloc, the function is unsafe, you should ensure that 
  *         the requested size is smaller than the free size of memory
@@ -84,7 +79,6 @@ void* sgl_malloc(size_t size);
  * @param  size   request size of memory
  */
 void* sgl_realloc(void *p, size_t size);
-
 
 /**
  * @brief  memory free
@@ -95,7 +89,6 @@ void* sgl_realloc(void *p, size_t size);
 */
 void sgl_free(void *p);
 
-
 /**
  * @brief  get memory monitor info
  * 
@@ -103,7 +96,6 @@ void sgl_free(void *p);
  * @return memory monitor info
  */
 sgl_mm_monitor_t sgl_mm_get_monitor(void);
-
 
 #ifdef __cplusplus
 }
