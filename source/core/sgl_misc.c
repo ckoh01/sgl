@@ -337,20 +337,18 @@ void sgl_monitor_trace(sgl_surf_t *surf)
     static sgl_obj_t *fps = NULL;
     static sgl_obj_t *mem = NULL;
     sgl_obj_t *child = NULL;
-    static uint32_t fps_count = 0, last_tick = 0, tick = 0;
-    uint32_t cur_tick = sgl_tick_get();
+    static uint32_t last_tick = 0;
+    uint32_t cur_tick = sgl_tick_get(), fps_count, tick_used;
     sgl_event_t evt = {0};
 
     if (monitor) {
-        if (tick != sgl_last_tick_get()) {
-            tick = sgl_last_tick_get();
-            fps_count ++;
-        }
+        tick_used = cur_tick - last_tick;
+        if (tick_used >= SGL_SYSTEM_TICK_MS) {
+            fps_count = 1000 / tick_used;
+            last_tick = cur_tick;
 
-        if ((cur_tick - last_tick) >= 500) {
-            sgl_snprintf(fps_str, sizeof(fps_str), "FPS:%d", fps_count * 2);
+            sgl_snprintf(fps_str, sizeof(fps_str), "FPS:%d", fps_count);
             sgl_snprintf(mem_str, sizeof(mem_str), "MEM:%d.%d%", sgl_mm_get_monitor().used_rate >> 8, sgl_mm_get_monitor().used_rate & 0xff);
-            fps_count = 0;
             last_tick = cur_tick;
         }
 
