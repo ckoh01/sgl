@@ -43,6 +43,16 @@ static void sgl_msgbox_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_
     uint8_t title_height = msgbox->title_height ? msgbox->title_height : font_height; // title height
     uint8_t msg_y_offset = msgbox->text_y_offset;  // message text y coords offset
 
+    sgl_draw_rect_t body_desc = {
+        .alpha = msgbox->alpha,
+        .border = border,
+        .border_alpha = msgbox->border_alpha,
+        .border_color = msgbox->border_color,
+        .color = msgbox->color,
+        .radius = obj->radius,
+        .pixmap = msgbox->pixmap,
+    };
+
     SGL_ASSERT(msgbox->font != NULL);
 
     sgl_color_t tmp_color;
@@ -86,34 +96,34 @@ static void sgl_msgbox_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_
             sgl_obj_set_destroyed(&msgbox->obj);
         }
 
-        sgl_draw_rect(surf, &obj->area, &obj->coords, &msgbox->body_desc);
+        sgl_draw_rect(surf, &obj->area, &obj->coords, &body_desc);
    
-        msgbox_draw_text(surf, &obj->area, &title_coords, msgbox->title_text, font, msgbox->title_color, msgbox->body_desc.alpha, 0);
+        msgbox_draw_text(surf, &obj->area, &title_coords, msgbox->title_text, font, msgbox->title_color, msgbox->alpha, 0);
 
         sgl_draw_fill_hline(surf, &obj->area,
                             obj->coords.y1 + title_height + 4,
-                            obj->coords.x1 + msgbox->body_desc.border,
-                            obj->coords.x2 - msgbox->body_desc.border,
-                            msgbox->body_desc.border,
-                            msgbox->body_desc.border_color,
-                            msgbox->body_desc.alpha
+                            obj->coords.x1 + border,
+                            obj->coords.x2 - obj->border,
+                            border,
+                            msgbox->border_color,
+                            msgbox->alpha
                            );
 
-        sgl_draw_string_mult_line(surf, &text_coords, text_coords.x1, text_coords.y1, msgbox->msg_text, msgbox->msg_color, msgbox->body_desc.alpha, font, msgbox->msg_line_margin);
+        sgl_draw_string_mult_line(surf, &text_coords, text_coords.x1, text_coords.y1, msgbox->msg_text, msgbox->msg_color, msgbox->alpha, font, msgbox->msg_line_margin);
 
         if(msgbox->status & SGL_MSGBOX_STATUS_LEFT) {
             tmp_color = msgbox->lbtn_color;
-            msgbox->lbtn_color = sgl_color_mixer(msgbox->lbtn_text_color, msgbox->body_desc.color, 128);
+            msgbox->lbtn_color = sgl_color_mixer(msgbox->lbtn_text_color, msgbox->color, 128);
         }
         else if(msgbox->status & SGL_MSGBOX_STATUS_RIGHT) {
             tmp_color = msgbox->rbtn_color;
-            msgbox->rbtn_color = sgl_color_mixer(msgbox->rbtn_text_color, msgbox->body_desc.color, 128);
+            msgbox->rbtn_color = sgl_color_mixer(msgbox->rbtn_text_color, msgbox->color, 128);
         }
 
-        sgl_draw_fill_rect(surf, &button_coords, &left_coords, obj->radius, msgbox->lbtn_color, msgbox->body_desc.alpha);
-        sgl_draw_fill_rect(surf, &button_coords, &right_coords, obj->radius, msgbox->rbtn_color, msgbox->body_desc.alpha);
-        msgbox_draw_text(surf, &obj->area, &left_coords, msgbox->lbtn_text, font, msgbox->lbtn_text_color, msgbox->body_desc.alpha, font_height / 2);
-        msgbox_draw_text(surf, &obj->area, &right_coords, msgbox->rbtn_text, font, msgbox->rbtn_text_color, msgbox->body_desc.alpha, font_height / 2);
+        sgl_draw_fill_rect(surf, &button_coords, &left_coords, obj->radius, msgbox->lbtn_color, msgbox->alpha);
+        sgl_draw_fill_rect(surf, &button_coords, &right_coords, obj->radius, msgbox->rbtn_color, msgbox->alpha);
+        msgbox_draw_text(surf, &obj->area, &left_coords, msgbox->lbtn_text, font, msgbox->lbtn_text_color, msgbox->alpha, font_height / 2);
+        msgbox_draw_text(surf, &obj->area, &right_coords, msgbox->rbtn_text, font, msgbox->rbtn_text_color, msgbox->alpha, font_height / 2);
     
         if(msgbox->status & SGL_MSGBOX_STATUS_LEFT) {
             msgbox->lbtn_color = tmp_color;
@@ -202,15 +212,14 @@ sgl_obj_t* sgl_msgbox_create(sgl_obj_t* parent)
     sgl_obj_init(&msgbox->obj, parent);
     obj->construct_fn = sgl_msgbox_construct_cb;
     sgl_obj_set_border_width(obj, SGL_THEME_BORDER_WIDTH);
+    sgl_obj_set_radius(obj, SGL_THEME_RADIUS);
     sgl_obj_set_editable(obj);
 
-    msgbox->body_desc.alpha = SGL_THEME_ALPHA;
-    msgbox->body_desc.color = SGL_THEME_COLOR;
-    msgbox->body_desc.radius = SGL_THEME_RADIUS;
-    msgbox->body_desc.border = SGL_THEME_BORDER_WIDTH;
-    msgbox->body_desc.border_alpha = SGL_THEME_ALPHA;
-    msgbox->body_desc.border_color = SGL_THEME_BORDER_COLOR;
-    msgbox->body_desc.pixmap = NULL;
+    msgbox->alpha = SGL_THEME_ALPHA;
+    msgbox->color = SGL_THEME_COLOR;
+    msgbox->border_alpha = SGL_THEME_ALPHA;
+    msgbox->border_color = SGL_THEME_BORDER_COLOR;
+    msgbox->pixmap = NULL;
 
     msgbox->font = sgl_get_system_font();
     msgbox->msg_color = SGL_THEME_TEXT_COLOR;
@@ -245,7 +254,7 @@ sgl_obj_t* sgl_msgbox_create(sgl_obj_t* parent)
 void sgl_msgbox_set_color(sgl_obj_t *obj, sgl_color_t color)
 {
     sgl_msgbox_t *msgbox = sgl_container_of(obj, sgl_msgbox_t, obj);
-    msgbox->body_desc.color = color;
+    msgbox->color = color;
     sgl_obj_set_dirty(obj);
 }
 
@@ -258,8 +267,8 @@ void sgl_msgbox_set_color(sgl_obj_t *obj, sgl_color_t color)
 void sgl_msgbox_set_alpha(sgl_obj_t *obj, uint8_t alpha)
 {
     sgl_msgbox_t *msgbox = sgl_container_of(obj, sgl_msgbox_t, obj);
-    msgbox->body_desc.alpha = alpha;
-    msgbox->body_desc.border_alpha = alpha;
+    msgbox->alpha = alpha;
+    msgbox->border_alpha = alpha;
     sgl_obj_set_dirty(obj);
 }
 
@@ -272,7 +281,7 @@ void sgl_msgbox_set_alpha(sgl_obj_t *obj, uint8_t alpha)
 void sgl_msgbox_set_main_alpha(sgl_obj_t *obj, uint8_t alpha)
 {
     sgl_msgbox_t *msgbox = sgl_container_of(obj, sgl_msgbox_t, obj);
-    msgbox->body_desc.alpha = alpha;
+    msgbox->alpha = alpha;
     sgl_obj_set_dirty(obj);
 }
 
@@ -285,7 +294,7 @@ void sgl_msgbox_set_main_alpha(sgl_obj_t *obj, uint8_t alpha)
 void sgl_msgbox_set_border_alpha(sgl_obj_t *obj, uint8_t alpha)
 {
     sgl_msgbox_t *msgbox = sgl_container_of(obj, sgl_msgbox_t, obj);
-    msgbox->body_desc.border_alpha = alpha;
+    msgbox->border_alpha = alpha;
     sgl_obj_set_dirty(obj);
 }
 
@@ -297,8 +306,6 @@ void sgl_msgbox_set_border_alpha(sgl_obj_t *obj, uint8_t alpha)
  */
 void sgl_msgbox_set_radius(sgl_obj_t *obj, uint8_t radius)
 {
-    sgl_msgbox_t *msgbox = sgl_container_of(obj, sgl_msgbox_t, obj);
-    msgbox->body_desc.radius = radius;
     sgl_obj_set_radius(obj, radius);
     sgl_obj_set_dirty(obj);
 }
@@ -324,7 +331,7 @@ void sgl_msgbox_set_border_width(sgl_obj_t *obj, uint8_t width)
 void sgl_msgbox_set_border_color(sgl_obj_t *obj, sgl_color_t color)
 {
     sgl_msgbox_t *msgbox = sgl_container_of(obj, sgl_msgbox_t, obj);
-    msgbox->body_desc.border_color = color;
+    msgbox->border_color = color;
     sgl_obj_set_dirty(obj);
 }
 
@@ -337,7 +344,7 @@ void sgl_msgbox_set_border_color(sgl_obj_t *obj, sgl_color_t color)
 void sgl_msgbox_set_pixmap(sgl_obj_t *obj, const sgl_pixmap_t *pixmap)
 {
     sgl_msgbox_t *msgbox = sgl_container_of(obj, sgl_msgbox_t, obj);
-    msgbox->body_desc.pixmap = pixmap;
+    msgbox->pixmap = pixmap;
     sgl_obj_set_dirty(obj);
 }
 
