@@ -39,7 +39,7 @@ static void sgl_msgbox_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_
     sgl_msgbox_t *msgbox = sgl_container_of(obj, sgl_msgbox_t, obj);
     const sgl_font_t *font = msgbox->font;
     int32_t font_height = sgl_font_get_height(font) + 8;
-    int16_t border = msgbox->body_desc.border;
+    int16_t border = obj->border;
     uint8_t title_height = msgbox->title_height ? msgbox->title_height : font_height; // title height
     uint8_t msg_y_offset = msgbox->text_y_offset;  // message text y coords offset
 
@@ -311,8 +311,6 @@ void sgl_msgbox_set_radius(sgl_obj_t *obj, uint8_t radius)
  */
 void sgl_msgbox_set_border_width(sgl_obj_t *obj, uint8_t width)
 {
-    sgl_msgbox_t *msgbox = sgl_container_of(obj, sgl_msgbox_t, obj);
-    msgbox->body_desc.border = width;
     sgl_obj_set_border_width(obj, width);
     sgl_obj_set_dirty(obj);
 }

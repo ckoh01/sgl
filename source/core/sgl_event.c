@@ -82,6 +82,7 @@ struct event_key_context {
     struct sgl_obj *focused;
     bool            editing;
     bool            pressed;
+    uint8_t         border;
     struct sgl_group_node *grp_head;
     struct sgl_group_node *grp_tail;
 };
@@ -534,6 +535,13 @@ static void event_set_focus(struct sgl_obj *obj, bool flag)
 {
     if (obj->focus != flag) {
         obj->focus = flag;
+        if (flag) {
+            key_ctx.border = key_ctx.focused->border;
+            key_ctx.focused->border = 0;
+        }
+        else {
+            key_ctx.focused->border = key_ctx.border;
+        }
         sgl_obj_set_dirty(obj);
     }
 }

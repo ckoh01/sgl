@@ -77,6 +77,77 @@ void sgl_draw_fill_circle(sgl_surf_t *surf, sgl_area_t *area, int16_t cx, int16_
     }
 }
 
+/**
+ * @brief Draw only the border ring of a circle, the interior is left untouched
+ * @param surf Surface
+ * @param area Area of the circle
+ * @param cx X coordinate of the center
+ * @param cy Y coordinate of the center
+ * @param radius Radius of the circle
+ * @param border_color Color of the border
+ * @param border_width Width of the border
+ * @param alpha Alpha of the border
+ * @return none
+ */
+void sgl_draw_fill_circle_border(sgl_surf_t *surf, sgl_area_t *area, int16_t cx, int16_t cy, int16_t radius, sgl_color_t border_color, int16_t border_width, uint8_t alpha)
+{
+    sgl_area_t clip = SGL_AREA_MAX;
+    sgl_surf_clip_area_return(surf, area, &clip);
+
+    if (border_width <= 0) return;
+
+    const int radius_in = sgl_max(radius - border_width, 0);
+    const int cx2 = 2 * cx + 1;
+    const int cy2 = 2 * cy + 1;
+
+    const int out_diameter = radius << 1;
+    const int out_r2_max   = sgl_pow2(out_diameter);
+    const int out_r2       = sgl_max(sgl_pow2(out_diameter - 3), 0);
+
+    const int in_diameter  = radius_in << 1;
+    const int in_r2_max    = sgl_pow2(in_diameter);
+    const int in_r2        = sgl_max(sgl_pow2(in_diameter - 3), 0);
+
+    const int out_fix = (SGL_ALPHA_MAX << SGL_FIXED_SHIFT) / sgl_max(out_r2_max - out_r2, 1);
+    const int in_fix  = (SGL_ALPHA_MAX << SGL_FIXED_SHIFT) / sgl_max(in_r2_max - in_r2, 1);
+
+    uint8_t edge_alpha;
+    sgl_color_t edge_c, *blend, *buf = sgl_surf_get_buf(surf, clip.x1 - surf->x1, clip.y1 - surf->y1);
+    int dx2, dy2;
+
+    for (int y = clip.y1; y <= clip.y2; y++) {
+        blend = buf;
+        dy2 = sgl_pow2(2 * y - cy2);
+
+        for (int x = clip.x1; x <= clip.x2; x++, blend++) {
+            dx2 = sgl_pow2(2 * x - cx2) + dy2;
+
+            if (dx2 >= out_r2_max) {
+                if (x > cx) break;
+                continue;
+            }
+
+            if (dx2 <= in_r2) {
+                continue;
+            }
+            else if (dx2 < in_r2_max) {
+                edge_alpha = ((dx2 - in_r2) * in_fix) >> SGL_FIXED_SHIFT;
+                edge_c = sgl_color_mixer(border_color, *blend, edge_alpha);
+                *blend = (alpha == SGL_ALPHA_MAX) ? edge_c : sgl_color_mixer(edge_c, *blend, alpha);
+            }
+            else if (dx2 <= out_r2) {
+                *blend = (alpha == SGL_ALPHA_MAX) ? border_color : sgl_color_mixer(border_color, *blend, alpha);
+            }
+            else {
+                edge_alpha = ((out_r2_max - dx2) * out_fix) >> SGL_FIXED_SHIFT;
+                edge_c = sgl_color_mixer(border_color, *blend, edge_alpha);
+                *blend = (alpha == SGL_ALPHA_MAX) ? edge_c : sgl_color_mixer(edge_c, *blend, alpha);
+            }
+        }
+        buf += surf->w;
+    }
+}
+
 #if (!CONFIG_SGL_PIXMAP_BILINEAR_INTERP)
 /**
  * @brief Draw a circle with pixmap and alpha
@@ -264,25 +335,18 @@ void sgl_draw_fill_circle_with_border(sgl_surf_t *surf, sgl_area_t *area, int16_
  */
 void sgl_draw_circle(sgl_surf_t *surf, sgl_area_t *area, sgl_draw_circle_t *desc)
 {
-    sgl_color_t color = desc->color;
-    int16_t radius = desc->radius;
-    uint8_t alpha = desc->alpha;
-    uint16_t border = desc->border;
-    sgl_color_t border_color = desc->border_color;
-
     if (unlikely(desc->alpha == SGL_ALPHA_MIN)) {
         return;
     }
 
     if (desc->pixmap == NULL) {
-        if (border) {
-            sgl_draw_fill_circle_with_border(surf, area, desc->cx, desc->cy, radius, color, border_color, border, alpha);
-        }
-        else {
-            sgl_draw_fill_circle(surf, area, desc->cx, desc->cy, radius, color, alpha);
-        }
+        sgl_draw_fill_circle(surf, area, desc->cx, desc->cy, desc->radius - desc->border, desc->color, desc->alpha);
     }
     else {
-        sgl_draw_fill_circle_pixmap(surf, area, desc->cx, desc->cy, radius, desc->pixmap, alpha);
+        sgl_draw_fill_circle_pixmap(surf, area, desc->cx, desc->cy, desc->radius - desc->border, desc->pixmap, desc->alpha);
+    }
+
+    if (desc->border) {
+        sgl_draw_fill_circle_border(surf, area, desc->cx, desc->cy, desc->radius, desc->border_color, desc->border, desc->alpha);
     }
 }

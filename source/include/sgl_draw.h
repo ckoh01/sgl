@@ -261,19 +261,17 @@ void sgl_draw_fill_rect(sgl_surf_t *surf, sgl_area_t *area, sgl_area_t *rect, in
 
 
 /**
- * @brief fill a round rectangle with alpha and border
+ * @brief draw only the border ring of a round rectangle, the interior is left untouched
  * @param surf point to surface
  * @param area area of rectangle that you want to draw
  * @param rect point to rectangle that you want to draw
  * @param radius radius of round
- * @param color color of rectangle
  * @param border_color color of border
  * @param border_width width of border
- * @param alpha alpha of rectangle
  * @param border_alpha alpha of border
  * @return none
  */
-void sgl_draw_fill_rect_with_border(sgl_surf_t *surf, sgl_area_t *area, sgl_area_t *rect, int16_t radius, sgl_color_t color, sgl_color_t border_color, uint8_t border_width, uint8_t alpha, uint8_t border_alpha);
+void sgl_draw_fill_rect_border(sgl_surf_t *surf, sgl_area_t *area, sgl_area_t *rect, int16_t radius, sgl_color_t border_color, uint8_t border_width, uint8_t border_alpha);
 
 
 /**
@@ -327,23 +325,19 @@ void sgl_draw_fill_circle(sgl_surf_t *surf, sgl_area_t *area, int16_t cx, int16_
  */
 void sgl_draw_fill_circle_pixmap(sgl_surf_t *surf, sgl_area_t *area, int16_t cx, int16_t cy, int16_t radius, const sgl_pixmap_t *pixmap, uint8_t alpha);
 
-
 /**
- * @brief Draw a circle with alpha and border
+ * @brief Draw only the border ring of a circle, the interior is left untouched
  * @param surf Surface
  * @param area Area of the circle
  * @param cx X coordinate of the center
  * @param cy Y coordinate of the center
  * @param radius Radius of the circle
- * @param color Color of the circle
  * @param border_color Color of the border
  * @param border_width Width of the border
- * @param alpha Alpha of the circle
+ * @param alpha Alpha of the border
  * @return none
  */
-
-void sgl_draw_fill_circle_with_border(sgl_surf_t *surf, sgl_area_t *area, int16_t cx, int16_t cy, int16_t radius, sgl_color_t color, sgl_color_t border_color, int16_t border_width, uint8_t alpha);
-
+void sgl_draw_fill_circle_border(sgl_surf_t *surf, sgl_area_t *area, int16_t cx, int16_t cy, int16_t radius, sgl_color_t border_color, int16_t border_width, uint8_t alpha);
 
 /**
  * @brief draw task, the task contains the draw information and canvas

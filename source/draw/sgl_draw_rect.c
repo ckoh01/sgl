@@ -54,7 +54,7 @@ void sgl_draw_wireframe(sgl_surf_t *surf, sgl_area_t *area, sgl_area_t *rect, in
         sgl_draw_fill_vline(surf, area, x2 - e_ofs, y1, y2, width, color, alpha);
     }
     else {
-        sgl_draw_fill_rect_with_border(surf, area, rect, radius, SGL_COLOR_BLACK, color, width, 0, alpha);
+        sgl_draw_fill_rect_border(surf, area, rect, radius, color, width, alpha);
     }
 }
 
@@ -159,28 +159,25 @@ void sgl_draw_fill_rect(sgl_surf_t *surf, sgl_area_t *area, sgl_area_t *rect, in
     }
 }
 
-
 /**
- * @brief fill a round rectangle with alpha and border
+ * @brief draw only the border ring of a round rectangle, the interior is left untouched
  * @param surf point to surface
  * @param area area of rectangle that you want to draw
  * @param rect point to rectangle that you want to draw
  * @param radius radius of round
- * @param color color of rectangle
  * @param border_color color of border
  * @param border_width width of border
- * @param alpha alpha of rectangle
  * @param border_alpha alpha of border
  * @return none
  */
-void sgl_draw_fill_rect_with_border(sgl_surf_t *surf, sgl_area_t *area, sgl_area_t *rect, int16_t radius, sgl_color_t color, sgl_color_t border_color, uint8_t border_width, uint8_t alpha, uint8_t border_alpha)
+void sgl_draw_fill_rect_border(sgl_surf_t *surf, sgl_area_t *area, sgl_area_t *rect, int16_t radius, sgl_color_t border_color, uint8_t border_width, uint8_t border_alpha)
 {
     sgl_area_t clip = SGL_AREA_INVALID;
     sgl_color_t *buf = NULL, *blend = NULL;
-
     sgl_surf_clip_area_return(surf, area, &clip);
     if (!sgl_area_selfclip(&clip, rect)) return;
-
+    if (border_width <= 0) return;
+    const uint8_t solid_border = (border_alpha == SGL_ALPHA_MAX);
     buf = sgl_surf_get_buf(surf, clip.x1 - surf->x1, clip.y1 - surf->y1);
     const int cx1i = rect->x1 + border_width;
     const int cx2i = rect->x2 - border_width;
@@ -190,11 +187,17 @@ void sgl_draw_fill_rect_with_border(sgl_surf_t *surf, sgl_area_t *area, sgl_area
     if (radius == 0) {
         for (int y = clip.y1; y <= clip.y2; y++) {
             blend = buf;
-            for (int x = clip.x1; x <= clip.x2; x++, blend++) {
-                if (x >= cx1i && x <= cx2i && y >= cyi1 && y <= cyi2) {
-                    *blend = (alpha == SGL_ALPHA_MAX) ? color : sgl_color_mixer(color, *blend, alpha);
-                } else {
-                    *blend = (border_alpha == SGL_ALPHA_MAX) ? border_color : sgl_color_mixer(border_color, *blend, border_alpha);
+            const uint8_t edge_row = (y < cyi1 || y > cyi2);
+            if (edge_row) {
+                for (int x = clip.x1; x <= clip.x2; x++, blend++) {
+                    *blend = solid_border ? border_color : sgl_color_mixer(border_color, *blend, border_alpha);
+                }
+            }
+            else {
+                for (int x = clip.x1; x <= clip.x2; x++, blend++) {
+                    if (x < cx1i || x > cx2i) {
+                        *blend = solid_border ? border_color : sgl_color_mixer(border_color, *blend, border_alpha);
+                    }
                 }
             }
             buf += surf->w;
@@ -202,22 +205,19 @@ void sgl_draw_fill_rect_with_border(sgl_surf_t *surf, sgl_area_t *area, sgl_area
         return;
     }
 
-    const int cx1 = rect->x1 + radius;
+    const int cx1  = rect->x1 + radius;
     const int cx2 = rect->x2 - radius;
     const int cy1 = rect->y1 + radius;
     const int cy2 = rect->y2 - radius;
-
     const int radius_in = sgl_max(radius - border_width, 0);
     const int out_r2 = sgl_pow2(radius);
     const int out_r2_max = sgl_pow2(radius + 1);
     const int in_r2 = sgl_pow2(radius_in);
     const int in_r2_max = sgl_pow2(radius_in + 1);
-
     const int out_r2_diff = sgl_max(out_r2_max - out_r2, 1);
     const int out_fix_diff = (SGL_ALPHA_MAX << SGL_FIXED_SHIFT) / out_r2_diff;
     const int in_r2_diff = sgl_max(in_r2_max - in_r2, 1);
     const int in_fix_diff = (SGL_ALPHA_MAX << SGL_FIXED_SHIFT) / in_r2_diff;
-
     int cy_tmp, cx_tmp;
     int dy2, real_r2;
     uint8_t edge_alpha;
@@ -225,41 +225,36 @@ void sgl_draw_fill_rect_with_border(sgl_surf_t *surf, sgl_area_t *area, sgl_area
 
     for (int y = clip.y1; y <= clip.y2; y++) {
         blend = buf;
-
         if (y >= cy1 && y <= cy2) {
+            const uint8_t edge_row = (y < cyi1 || y > cyi2);
             for (int x = clip.x1; x <= clip.x2; x++, blend++) {
-                if (x < cx1i || x > cx2i) {
-                    *blend = (border_alpha == SGL_ALPHA_MAX) ? border_color : sgl_color_mixer(border_color, *blend, border_alpha);
-                } else {
-                    *blend = (alpha == SGL_ALPHA_MAX) ? color : sgl_color_mixer(color, *blend, alpha);
+                if (x < cx1i || x > cx2i || edge_row) {
+                    *blend = solid_border ? border_color : sgl_color_mixer(border_color, *blend, border_alpha);
                 }
             }
         }
         else {
             cy_tmp = (y < cy1) ? cy1 : cy2;
             dy2 = sgl_pow2(y - cy_tmp);
-
+            const uint8_t edge_row = (y < cyi1 || y > cyi2);
             for (int x = clip.x1; x <= clip.x2; x++, blend++) {
                 if (x >= cx1 && x <= cx2) {
-                    if (y < cyi1 || y > cyi2) {
-                        *blend = (border_alpha == SGL_ALPHA_MAX) ? border_color : sgl_color_mixer(border_color, *blend, border_alpha);
-                    } else {
-                        *blend = (alpha == SGL_ALPHA_MAX) ? color : sgl_color_mixer(color, *blend, alpha);
+                    if (edge_row) {
+                        *blend = solid_border ? border_color : sgl_color_mixer(border_color, *blend, border_alpha);
                     }
                 }
                 else {
                     cx_tmp = (x < cx1) ? cx1 : cx2;
                     real_r2 = sgl_pow2(x - cx_tmp) + dy2;
-
                     if (real_r2 >= out_r2_max) {
                         if(x > cx_tmp) break; else continue;
                     }
-                    else if (real_r2 < in_r2) {
-                        *blend = (alpha == SGL_ALPHA_MAX) ? color : sgl_color_mixer(color, *blend, alpha);
+                    else if (real_r2 <= in_r2) {
+                        continue;
                     }
                     else if (real_r2 < in_r2_max) {
-                        edge_alpha = ((in_r2_max - real_r2) * in_fix_diff) >> SGL_FIXED_SHIFT;
-                        edge_c = sgl_color_mixer(sgl_color_mixer(color, *blend, alpha), border_color, edge_alpha);
+                        edge_alpha = ((real_r2 - in_r2) * in_fix_diff) >> SGL_FIXED_SHIFT;
+                        edge_c = sgl_color_mixer(border_color, *blend, edge_alpha);
                         *blend = (border_alpha == SGL_ALPHA_MAX) ? edge_c : sgl_color_mixer(edge_c, *blend, border_alpha);
                     }
                     else if (real_r2 <= out_r2) {
@@ -276,7 +271,6 @@ void sgl_draw_fill_rect_with_border(sgl_surf_t *surf, sgl_area_t *area, sgl_area
         buf += surf->w;
     }
 }
-
 
 #if (!CONFIG_SGL_PIXMAP_BILINEAR_INTERP)
 /**
@@ -478,15 +472,21 @@ void sgl_draw_fill_rect_pixmap(sgl_surf_t *surf, sgl_area_t *area, sgl_area_t *r
  */
 void sgl_draw_rect(sgl_surf_t *surf, sgl_area_t *area, sgl_rect_t *rect, sgl_draw_rect_t *desc)
 {
+    sgl_rect_t rect_tmp = {
+        .x1 = rect->x1 + desc->border,
+        .x2 = rect->x2 - desc->border,
+        .y1 = rect->y1 + desc->border,
+        .y2 = rect->y2 - desc->border
+    };
+
     if (desc->pixmap == NULL) {
-        if (desc->border == 0) {
-            sgl_draw_fill_rect(surf, area, rect, desc->radius, desc->color, desc->alpha);
-        }
-        else {
-            sgl_draw_fill_rect_with_border(surf, area, rect, desc->radius, desc->color, desc->border_color, desc->border, desc->alpha, desc->border_alpha);
-        }
+        sgl_draw_fill_rect(surf, area, &rect_tmp, desc->radius - desc->border, desc->color, desc->alpha);
     }
     else {
-        sgl_draw_fill_rect_pixmap(surf, area, rect, desc->radius, desc->pixmap, desc->alpha);
+        sgl_draw_fill_rect_pixmap(surf, area, &rect_tmp, desc->radius - desc->border, desc->pixmap, desc->alpha);
+    }
+
+    if (desc->border) {
+        sgl_draw_fill_rect_border(surf, area, rect, desc->radius, desc->border_color, desc->border, desc->border_alpha);
     }
 }
