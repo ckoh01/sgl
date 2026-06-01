@@ -51,6 +51,7 @@ static void sgl_switch_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_
         .border = obj->border,
         .color = p_switch->color,
         .border_color = p_switch->border_color,
+        .border_mask = obj->focus,
         .pixmap = p_switch->pixmap,
         .radius = obj->radius,
     };

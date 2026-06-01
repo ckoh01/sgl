@@ -578,6 +578,7 @@ static void sgl_barchart_construct_cb(sgl_surf_t *surf, sgl_obj_t *obj, sgl_even
     sgl_draw_rect_t bg_desc = {
         .alpha = chart->bg_alpha,
         .border = obj->border,
+        .border_mask = obj->focus,
         .color = chart->bg_color,
         .radius = obj->radius,
         .border_color = chart->border_color,

@@ -40,6 +40,7 @@ static void sgl_bar_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_t *
     sgl_draw_rect_t desc = {
         .alpha = bar->alpha,
         .border = obj->border,
+        .border_mask = obj->focus,
         .border_alpha = bar->alpha,
         .border_color = bar->border_color,
         .pixmap = bar->pixmap,

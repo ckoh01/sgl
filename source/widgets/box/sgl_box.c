@@ -49,6 +49,7 @@ static void sgl_box_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_t *
         area.x2 = obj->coords.x2 - box->bg.radius;
         area.y2 = obj->coords.y2 - box->bg.radius;
 
+        box->bg.border_mask = obj->focus;
         sgl_draw_rect(surf, &obj->area, &obj->coords, &box->bg);
 
         // Draw scrollbars if enabled

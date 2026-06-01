@@ -928,6 +928,7 @@ static void sgl_linechart_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_eve
         .color       = chart->bg_color,
         .radius      = obj->radius,
         .border_color= chart->border_color,
+        .border_mask = obj->focus,
         .pixmap      = NULL,
     };
     sgl_draw_rect(surf, &obj->area, &obj->coords, &bg_desc);

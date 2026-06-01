@@ -49,6 +49,7 @@ static void sgl_progress_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
     if(evt->type == SGL_EVENT_DRAW_MAIN) {
         knob.x2 = obj->coords.x1 - obj->radius / 2 - 2 + (obj->coords.x2 - obj->coords.x1) * progress->value / 100;
         knob.x2 -= obj->border - 1;
+        progress->body.border_mask = obj->focus;
         sgl_draw_rect(surf, &obj->area, &obj->coords, &progress->body);
 
         fill_radius = sgl_min3(obj->radius, progress->knob_radius, progress->knob_width / 2);

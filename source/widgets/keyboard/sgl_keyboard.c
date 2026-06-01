@@ -394,6 +394,7 @@ static void sgl_keyboard_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
     switch (evt->type) {
     case SGL_EVENT_DRAW_MAIN:
         keyboard->body_desc.border = obj->border;
+        keyboard->body_desc.border_mask = obj->focus;
         sgl_draw_rect(surf, &obj->area, &obj->coords, &keyboard->body_desc);
 
         btn_coords.y1 = obj->coords.y1;

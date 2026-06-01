@@ -50,6 +50,7 @@ static void sgl_button_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_
         .alpha = button->alpha,
         .color = button->color,
         .border = obj->border,
+        .border_mask = obj->focus,
         .border_alpha = button->alpha,
         .border_color = button->border_color,
         .pixmap = button->pixmap,

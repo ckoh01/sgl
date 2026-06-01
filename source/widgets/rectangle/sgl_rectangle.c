@@ -49,6 +49,7 @@ static void sgl_rectangle_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_eve
         .border_alpha = rect->border_alpha,
         .border = obj->border,
         .border_color = rect->border_color,
+        .border_mask = obj->focus,
         .pixmap = rect->pixmap,
         .radius = obj->radius,
     };

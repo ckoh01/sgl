@@ -48,6 +48,7 @@ static void sgl_msgbox_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_
         .border = border,
         .border_alpha = msgbox->border_alpha,
         .border_color = msgbox->border_color,
+        .border_mask = obj->focus,
         .color = msgbox->color,
         .radius = obj->radius,
         .pixmap = msgbox->pixmap,

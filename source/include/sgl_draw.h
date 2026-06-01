@@ -49,6 +49,7 @@ typedef struct sgl_draw_rect {
     uint8_t                 alpha;
     uint8_t                 border;
     uint8_t                 border_alpha;
+    uint8_t                 border_mask;
     sgl_color_t             color;
     int16_t                 radius;
     sgl_color_t             border_color;

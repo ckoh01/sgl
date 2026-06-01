@@ -64,9 +64,11 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
         .border = obj->border,
         .border_alpha = dropdown->alpha,
         .border_color = dropdown->border_color,
+        .border_mask = obj->focus,
         .radius = obj->radius,
         .pixmap = NULL,
     };
+
     sgl_rect_t bg_coords = obj->coords;
     const int item_height = sgl_font_get_height(dropdown->font) + 2 * SGL_DROPDOWN_OPTION_SPACE;
     const int item_pad = sgl_max(obj->radius, obj->border + SGL_DROPDOWN_OPTION_PAD);
