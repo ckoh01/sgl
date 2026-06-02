@@ -57,6 +57,7 @@ static void sgl_textbox_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event
         area.y1 = obj->coords.y1 + textbox->bg.radius;
         area.x2 = obj->coords.x2 - textbox->bg.radius;
         area.y2 = obj->coords.y2 - textbox->bg.radius;
+        textbox->bg.border_mask = obj->focus;
 
         sgl_draw_rect(surf, &obj->area, &obj->coords, &textbox->bg);
         sgl_draw_string_mult_line(surf, &area, area.x1, 

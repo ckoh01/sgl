@@ -43,6 +43,7 @@ static void sgl_win_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_t *
         title_area.y2 = title_area.y1 + title_h;
         body_area.y1 = title_area.y2;
         desc.color = win->bg.color;
+        desc.border_mask = obj->focus;
         sgl_draw_rect(surf, &body_area, &obj->coords, &desc);
 
         desc.color = win->title_bg_color;

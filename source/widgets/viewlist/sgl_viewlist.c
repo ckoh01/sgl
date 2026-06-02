@@ -41,6 +41,7 @@ static void sgl_viewlist_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
         .border = obj->border,
         .border_alpha = viewlist->alpha,
         .border_color = viewlist->border_color,
+        .border_mask = obj->focus,
         .radius = obj->radius,
         .pixmap = viewlist->pixmap,
     };

@@ -41,6 +41,7 @@ extern "C" {
  * @color: color of rect
  * @alpha: alpha of rect
  * @border_alpha: alpha of border
+ * @border_mask: mask of border
  * @border: border of rect
  * @border_color: border color of rect
  * @pixmap: pixmap of rect
