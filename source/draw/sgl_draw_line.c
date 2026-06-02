@@ -115,11 +115,17 @@ void sgl_draw_fill_vline(sgl_surf_t *surf, sgl_area_t *area, int16_t x, int16_t 
  */
 void draw_line_fill_slanted(sgl_surf_t *surf, sgl_area_t *area, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t thickness, sgl_color_t color, uint8_t alpha)
 {
-    const int64_t bax = (int64_t)x2 - x1, bay = (int64_t)y2 - y1;
-    const int64_t b_sqd = bax * bax + bay * bay;
-    const int64_t inv_b_sqd = (1LL << 32) / b_sqd;
+    const int32_t bax = (int32_t)x2 - x1;
+    const int32_t bay = (int32_t)y2 - y1;
+    const int32_t b_sqd = bax * bax + bay * bay;
+    if (b_sqd == 0) return;
+
+    const uint32_t sqrt_bsqd = sgl_sqrt((uint32_t)b_sqd);
+    const int32_t inv_len = (int32_t)((65536LL + sqrt_bsqd / 2) / sqrt_bsqd);
+
     const int32_t inner_limit = (thickness - 1) << 8;
     const int32_t outer_limit = thickness << 8;
+    const int32_t aa_range = outer_limit - inner_limit;
 
     sgl_area_t clip = SGL_AREA_MAX;
     sgl_area_t c_rect = {
@@ -128,7 +134,6 @@ void draw_line_fill_slanted(sgl_surf_t *surf, sgl_area_t *area, int16_t x1, int1
         .y1 = (y1 < y2 ? y1 : y2) - thickness,
         .y2 = (y1 > y2 ? y1 : y2) + thickness,
     };
-
     sgl_surf_clip_area_return(surf, area, &clip);
     if (!sgl_area_selfclip(&clip, &c_rect)) return;
 
@@ -137,31 +142,39 @@ void draw_line_fill_slanted(sgl_surf_t *surf, sgl_area_t *area, int16_t x1, int1
 
     for (int y = clip.y1; y <= clip.y2; y++) {
         sgl_color_t *blend = buf;
-        const int64_t pay = (int64_t)y - y1;
-        
+        const int32_t pay = (int32_t)y - y1;
+
+        int32_t dot   = ((int32_t)clip.x1 - x1) * bax + pay * bay;
+        int32_t cross = ((int32_t)clip.x1 - x1) * bay - pay * bax;
+
         for (int x = clip.x1; x <= clip.x2; x++, blend++) {
-            const int64_t pax = (int64_t)x - x1;
-            int64_t dot = pax * bax + pay * bay;
+            const int32_t cur_dot   = dot;
+            const int32_t cur_cross = cross;
+            dot   += bax;
+            cross += bay;
 
-            if (dot < 0)
-                dot = 0; 
-            else if (dot > b_sqd)
-                dot = b_sqd;
+            int32_t dist_q8;
+            const int32_t abs_cross = (cur_cross >= 0) ? cur_cross : -cur_cross;
 
-            const int64_t h = dot << 8; 
-            const int64_t dx = (pax << 8) - ((bax * h * inv_b_sqd) >> 32);
-            const int64_t dy = (pay << 8) - ((bay * h * inv_b_sqd) >> 32);
-            const int32_t len = sgl_sqrt(dx * dx + dy * dy);
-
-            if (len < inner_limit) {
-                *blend = (alpha == SGL_ALPHA_MAX ? color : sgl_color_mixer(color, *blend, alpha));
+            if (cur_dot >= 0 && cur_dot <= b_sqd) {
+                dist_q8 = (int32_t)(((int64_t)abs_cross * inv_len) >> 8);
             }
-            else if (len < outer_limit) {
-                const uint8_t c = (uint8_t)(len - inner_limit);
+            else {
+                const int32_t along = (cur_dot < 0) ? -cur_dot : (cur_dot - b_sqd);
+                const uint32_t raw_sq = (uint32_t)((int64_t)along * along + (int64_t)cur_cross * cur_cross);
+                const uint32_t raw_d  = sgl_sqrt(raw_sq);
+                dist_q8 = (int32_t)(((int64_t)raw_d * inv_len) >> 8);
+            }
+
+            if (dist_q8 < inner_limit) {
+                *blend = (alpha == SGL_ALPHA_MAX) ? color : sgl_color_mixer(color, *blend, alpha);
+            }
+            else if (dist_q8 < outer_limit) {
+                const uint32_t c = (uint32_t)((outer_limit - dist_q8) * 255 / aa_range);
                 if (alpha == SGL_ALPHA_MAX) {
-                    *blend = sgl_color_mixer(*blend, color, c);
+                    *blend = sgl_color_mixer(color, *blend, (uint8_t)c);
                 } else {
-                    uint8_t final_a = (uint8_t)(((uint16_t)c * alpha) >> 8);
+                    const uint8_t final_a = (uint8_t)((c * alpha) >> 8);
                     *blend = sgl_color_mixer(color, *blend, final_a);
                 }
             }
@@ -169,7 +182,6 @@ void draw_line_fill_slanted(sgl_surf_t *surf, sgl_area_t *area, int16_t x1, int1
         buf += stride;
     }
 }
-
 
 /**
  * @brief Draw a dashed line using Bresenham's algorithm.

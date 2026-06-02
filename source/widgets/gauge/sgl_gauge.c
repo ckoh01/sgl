@@ -39,10 +39,10 @@ static void gauge_calc_needle_area(const sgl_gauge_t *gauge, int16_t cx, int16_t
     int32_t n_sin = sgl_sin(needle_angle_deg);
     int32_t n_cos = sgl_cos(needle_angle_deg);
 
-    int32_t px_needle = ((r - pointer_s) * n_cos) / SGL_SIN_FIXED_ONE + cx;
-    int32_t py_needle = ((r - pointer_s) * n_sin) / SGL_SIN_FIXED_ONE + cy;
-    int32_t nx_needle = ((r - pointer_e) * n_cos) / SGL_SIN_FIXED_ONE + cx;
-    int32_t ny_needle = ((r - pointer_e) * n_sin) / SGL_SIN_FIXED_ONE + cy;
+    int32_t px_needle = ((r - pointer_s) * n_cos) / SGL_SIN_FIXED_ONE + cx + 1;
+    int32_t py_needle = ((r - pointer_s) * n_sin) / SGL_SIN_FIXED_ONE + cy + 1;
+    int32_t nx_needle = ((r - pointer_e) * n_cos) / SGL_SIN_FIXED_ONE + cx + 1;
+    int32_t ny_needle = ((r - pointer_e) * n_sin) / SGL_SIN_FIXED_ONE + cy + 1;
 
     area->x1 = sgl_min(px_needle, nx_needle);
     area->x2 = sgl_max(px_needle, nx_needle);
@@ -150,10 +150,10 @@ static void sgl_gauge_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_t
         int32_t n_sin = sgl_sin(needle_angle_deg);
         int32_t n_cos = sgl_sin(needle_angle_deg + 90);
 
-        int32_t px_needle = ((r - pointer_s) * n_cos) / SGL_SIN_FIXED_ONE + cx;
-        int32_t py_needle = ((r - pointer_s) * n_sin) / SGL_SIN_FIXED_ONE + cy;
-        int32_t nx_needle = ((r - pointer_e) * n_cos) / SGL_SIN_FIXED_ONE + cx;
-        int32_t ny_needle = ((r - pointer_e) * n_sin) / SGL_SIN_FIXED_ONE + cy;
+        int32_t px_needle = ((r - pointer_s) * n_cos) / SGL_SIN_FIXED_ONE + cx + 1;
+        int32_t py_needle = ((r - pointer_s) * n_sin) / SGL_SIN_FIXED_ONE + cy + 1;
+        int32_t nx_needle = ((r - pointer_e) * n_cos) / SGL_SIN_FIXED_ONE + cx + 1;
+        int32_t ny_needle = ((r - pointer_e) * n_sin) / SGL_SIN_FIXED_ONE + cy + 1;
 
         draw_line_fill_slanted(surf, &obj->area, px_needle, py_needle, nx_needle, ny_needle, gauge->pointer_width, gauge->pointer_color, gauge->alpha);
     }
