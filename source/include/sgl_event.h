@@ -67,8 +67,7 @@ struct sgl_page;
 #define  SGL_EVENT_KEY_DOWN             (18)
 #define  SGL_EVENT_KEY_LEFT             (19)
 #define  SGL_EVENT_KEY_RIGHT            (20)
-#define  SGL_EVENT_KEY_ENTER            (21)
-#define  SGL_EVENT_KEY_ESC              (22)
+#define  SGL_EVENT_KEY_ESC              (21)
 
 #define  sgl_event_type_t               uint8_t
 

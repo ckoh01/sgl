@@ -54,8 +54,44 @@ static const sgl_icon_pixmap_t dropdown_icon = {
     .width = 18,
 };
 
+static inline void sgl_dropdown_clamp_pos_y(sgl_dropdown_t *dropdown, int list_h, int item_height)
+{
+    if (dropdown->pos_y > 0) {
+        dropdown->pos_y = 0;
+    } else {
+        const int min_pos = list_h - dropdown->item_num * item_height;
+        if (dropdown->pos_y < min_pos) {
+            dropdown->pos_y = min_pos;
+        }
+    }
+}
 
-static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_t *evt)
+static inline void sgl_dropdown_ensure_visible(sgl_dropdown_t *dropdown, int list_h, int item_height)
+{
+    const int selected_y = dropdown->item_selected * item_height;
+    const int view_top = -dropdown->pos_y;
+    const int view_bottom = view_top + list_h;
+
+    if (selected_y < view_top) {
+        dropdown->pos_y = -selected_y;
+    } else if (selected_y + item_height > view_bottom) {
+        dropdown->pos_y = -(selected_y + item_height - list_h);
+    }
+    sgl_dropdown_clamp_pos_y(dropdown, list_h, item_height);
+}
+
+static inline void sgl_dropdown_toggle_open(sgl_obj_t *obj, sgl_dropdown_t *dropdown, int item_height)
+{
+    dropdown->is_open = !dropdown->is_open;
+    if (dropdown->is_open) {
+        obj->coords.y2 = obj->coords.y1 + dropdown->option_h 
+                       + dropdown->max_visible_item * item_height - 1;
+    } else {
+        obj->coords.y2 = obj->coords.y1 + dropdown->option_h - 1;
+    }
+}
+
+static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t *obj, sgl_event_t *evt)
 {
     sgl_dropdown_t *dropdown = sgl_container_of(obj, sgl_dropdown_t, obj);
     sgl_draw_rect_t bg_desc = {
@@ -75,7 +111,7 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
 
     if (dropdown->option_h == 0) {
         dropdown->option_h = sgl_obj_get_height(obj);
-    };
+    }
     const int list_h = dropdown->option_h * dropdown->max_visible_item;
     sgl_dropdown_item_t *item = dropdown->head;
 
@@ -86,17 +122,20 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
         const int text_pos_y = (dropdown->option_h - sgl_font_get_height(dropdown->font) + 1) / 2;
 
         if (dropdown->is_open) {
-            sgl_draw_icon(surf, &obj->area, obj->coords.x2 - dropdown_icon.width - obj->radius, 
-                            obj->coords.y1 + (item_height - dropdown_icon.height + 1) / 2 + 2, dropdown->text_color, dropdown->alpha, &dropdown_icon);
-        }
-        else {
             sgl_draw_icon(surf, &obj->area, obj->coords.x2 - dropdown_icon.width - obj->radius,
-                            obj->coords.y1 + (item_height - dropdown_icon.height + 1) / 2, dropdown->text_color, dropdown->alpha, &dropdown_icon);
+                          obj->coords.y1 + (item_height - dropdown_icon.height + 1) / 2 + 2,
+                          dropdown->text_color, dropdown->alpha, &dropdown_icon);
+        } else {
+            sgl_draw_icon(surf, &obj->area, obj->coords.x2 - dropdown_icon.width - obj->radius,
+                          obj->coords.y1 + (item_height - dropdown_icon.height + 1) / 2,
+                          dropdown->text_color, dropdown->alpha, &dropdown_icon);
         }
 
-        for (int i = 0; i < dropdown->item_num && item !=  NULL; i++, item = item->next) {
+        for (int i = 0; i < dropdown->item_num && item != NULL; i++, item = item->next) {
             if (i == dropdown->item_selected) {
-                sgl_draw_string(surf, &obj->area, obj->coords.x1 + item_pad, obj->coords.y1 + text_pos_y, item->text, dropdown->text_color, dropdown->alpha, dropdown->font);
+                sgl_draw_string(surf, &obj->area, obj->coords.x1 + item_pad,
+                                obj->coords.y1 + text_pos_y, item->text,
+                                dropdown->text_color, dropdown->alpha, dropdown->font);
                 item = dropdown->head;
                 break;
             }
@@ -116,102 +155,90 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
             bg_coords.y1 = obj->coords.y1 + dropdown->option_h;
             bg_coords.y2 = bg_coords.y1 + dropdown->max_visible_item * item_height - 1;
             sgl_draw_rect(surf, &obj->area, &bg_coords, &bg_desc);
-            
+
             sgl_area_t bg_area = {
-                .x1 = obj->area.x1,
-                .x2 = obj->area.x2,
+                .x1 = obj->area.x1, .x2 = obj->area.x2,
                 .y1 = sgl_max(bg_coords.y1, obj->coords.y1),
                 .y2 = sgl_min(bg_coords.y2, obj->coords.y2),
             };
 
-            int16_t text_pos_y =  bg_coords.y1 + SGL_DROPDOWN_OPTION_SPACE;
-            text_pos_y += dropdown->pos_y;
-            sgl_draw_fill_hline(surf, &bg_area, text_pos_y - SGL_DROPDOWN_OPTION_SPACE, text_pos_x1, text_pos_x2, 1,
-                                                dropdown->text_color, dropdown->alpha);
+            int16_t draw_text_y = bg_coords.y1 + SGL_DROPDOWN_OPTION_SPACE + dropdown->pos_y;
+            sgl_draw_fill_hline(surf, &bg_area, draw_text_y - SGL_DROPDOWN_OPTION_SPACE,
+                                text_pos_x1, text_pos_x2, 1, dropdown->text_color, dropdown->alpha);
 
             while (item != NULL) {
-                if (text_pos_y >= bg_area.y2) {
-                    break;
-                }
+                if (draw_text_y >= bg_area.y2) break;
 
                 if (item_idx == dropdown->item_selected) {
-                    select.y1 = text_pos_y - SGL_DROPDOWN_OPTION_SPACE;
+                    select.y1 = draw_text_y - SGL_DROPDOWN_OPTION_SPACE;
                     select.y2 = select.y1 + item_height;
 
-                    if ((select.y1 >= (bg_coords.y1 + obj->radius)) && (select.y2 <= (bg_coords.y2 - obj->radius))) {
+                    if (select.y1 >= (bg_coords.y1 + obj->radius) && select.y2 <= (bg_coords.y2 - obj->radius)) {
                         sgl_draw_fill_rect(surf, &bg_area, &select, 0, dropdown->item_selected_color, dropdown->alpha);
-                    }
-                    else if (select.y1 <= (bg_coords.y1 + obj->radius)) {
-                        sgl_area_t select_coords = select;
-                        select_coords.y1 = bg_coords.y1 + obj->border;
-                        select_coords.y2 = select.y1 + item_height + obj->radius + 1;
-                        sgl_draw_fill_rect(surf, &select, &select_coords, obj->radius, dropdown->item_selected_color, dropdown->alpha);
-                    }
-                    else if (select.y2 >= (bg_coords.y2 - obj->radius)) {
-                        sgl_area_t select_coords = select;
-                        select_coords.y1 = select.y1 - item_height - obj->radius - 1;
-                        select_coords.y2 = bg_coords.y2 - obj->border;
-                        sgl_draw_fill_rect(surf, &select, &select_coords, obj->radius, dropdown->item_selected_color, dropdown->alpha);
+                    } else if (select.y1 <= (bg_coords.y1 + obj->radius)) {
+                        sgl_area_t sel = select;
+                        sel.y1 = bg_coords.y1 + obj->border;
+                        sel.y2 = select.y1 + item_height + obj->radius + 1;
+                        sgl_draw_fill_rect(surf, &select, &sel, obj->radius, dropdown->item_selected_color, dropdown->alpha);
+                    } else if (select.y2 >= (bg_coords.y2 - obj->radius)) {
+                        sgl_area_t sel = select;
+                        sel.y1 = select.y1 - item_height - obj->radius - 1;
+                        sel.y2 = bg_coords.y2 - obj->border;
+                        sgl_draw_fill_rect(surf, &select, &sel, obj->radius, dropdown->item_selected_color, dropdown->alpha);
                     }
                 }
 
-                sgl_draw_string(surf, &bg_area, text_pos_x1, text_pos_y, item->text, dropdown->text_color, dropdown->alpha, dropdown->font);
+                sgl_draw_string(surf, &bg_area, text_pos_x1, draw_text_y, item->text,
+                                dropdown->text_color, dropdown->alpha, dropdown->font);
+                sgl_draw_fill_hline(surf, &bg_area, draw_text_y + hline_h,
+                                    text_pos_x1, text_pos_x2, 1, dropdown->text_color, dropdown->alpha);
 
-                sgl_draw_fill_hline(surf, &bg_area, text_pos_y + hline_h, text_pos_x1, text_pos_x2, 1,
-                                                dropdown->text_color, dropdown->alpha);
-
-                text_pos_y += item_height;
+                draw_text_y += item_height;
                 item = item->next;
-                item_idx ++;
+                item_idx++;
             }
         }
-    }
-    break;
-    
+    } break;
+
     case SGL_EVENT_MOVE_UP:
         if (dropdown->is_open) {
-            if((dropdown->pos_y + (dropdown->item_num) * item_height) >= (list_h - item_height / 2)) {
+            if ((dropdown->pos_y + dropdown->item_num * item_height) >= (list_h - item_height / 2)) {
                 dropdown->pos_y -= evt->distance;
             }
             sgl_obj_set_dirty(obj);
         }
-    break;
+        break;
 
     case SGL_EVENT_MOVE_DOWN:
         if (dropdown->is_open) {
-            if(dropdown->pos_y < item_height / 2) {
+            if (dropdown->pos_y < item_height / 2) {
                 dropdown->pos_y += evt->distance;
             }
             sgl_obj_set_dirty(obj);
         }
-    break;
+        break;
 
     case SGL_EVENT_CLICKED:
         if (dropdown->is_open) {
             dropdown->is_open = false;
-            obj->coords.y2 =  obj->coords.y1 + dropdown->option_h - 1;
+            obj->coords.y2 = obj->coords.y1 + dropdown->option_h - 1;
             if (evt->pos.y > obj->coords.y2) {
                 dropdown->item_selected = (evt->pos.y - obj->coords.y2 - dropdown->pos_y) / item_height;
             }
-        }
-        else {
+        } else {
             dropdown->is_open = true;
-            obj->coords.y2 = obj->coords.y1 + dropdown->option_h + dropdown->max_visible_item * item_height - 1;
+            obj->coords.y2 = obj->coords.y1 + dropdown->option_h 
+                           + dropdown->max_visible_item * item_height - 1;
         }
-
         sgl_obj_set_dirty(obj);
-    break;
+        break;
 
     case SGL_EVENT_RELEASED:
-        if (dropdown->pos_y >= 0) {
-            dropdown->pos_y = 0;
+        if (dropdown->is_open) {
+            sgl_dropdown_clamp_pos_y(dropdown, list_h, item_height);
             sgl_obj_set_dirty(obj);
         }
-        else if((dropdown->pos_y + dropdown->item_num * item_height) <= list_h) {
-            dropdown->pos_y = list_h - dropdown->item_num * item_height;
-            sgl_obj_set_dirty(obj);
-        }
-    break;
+        break;
 
     case SGL_EVENT_DESTROYED:
         while (item != NULL) {
@@ -219,12 +246,36 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
             sgl_free(item);
             item = next;
         }
-    break;
+        break;
 
-    default: break;
+    case SGL_EVENT_KEY_DOWN:
+    case SGL_EVENT_KEY_RIGHT: {
+        if (dropdown->item_num == 0) break;
+        if (dropdown->item_selected < dropdown->item_num - 1) {
+            dropdown->item_selected++;
+            if (dropdown->is_open) {
+                sgl_dropdown_ensure_visible(dropdown, list_h, item_height);
+            }
+            sgl_obj_set_dirty(obj);
+        }
+    } break;
+
+    case SGL_EVENT_KEY_UP:
+    case SGL_EVENT_KEY_LEFT: {
+        if (dropdown->item_num == 0) break;
+        if (dropdown->item_selected > 0) {
+            dropdown->item_selected--;
+            if (dropdown->is_open) {
+                sgl_dropdown_ensure_visible(dropdown, list_h, item_height);
+            }
+            sgl_obj_set_dirty(obj);
+        }
+    } break;
+
+    default:
+        break;
     }
 }
-
 
 /**
  * @brief create a dropdown object
@@ -247,6 +298,7 @@ sgl_obj_t* sgl_dropdown_create(sgl_obj_t* parent)
     obj->construct_fn = sgl_dropdown_construct_cb;
     sgl_obj_set_border_width(obj, 1);
     sgl_obj_set_clickable(obj);
+    sgl_obj_set_editable(obj);
     sgl_obj_set_movable(obj);
     sgl_obj_set_keypress_mask(obj);
 

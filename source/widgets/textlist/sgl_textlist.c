@@ -150,8 +150,7 @@ static void sgl_textlist_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
         }
     break;
 
-    case SGL_EVENT_CLICKED:
-    case SGL_EVENT_KEY_ENTER: {
+    case SGL_EVENT_CLICKED: {
         int16_t click_y = evt->pos.y;
         int16_t local_y = click_y - obj->coords.y1;
 

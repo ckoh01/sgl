@@ -775,8 +775,7 @@ void sgl_event_key_enter_pressed(void)
     }
 
     if (!sgl_obj_is_editable(key_ctx.focused)) {
-        type = sgl_obj_is_keypress_mask(key_ctx.focused) ? SGL_EVENT_CLICKED : SGL_EVENT_PRESSED;
-        event_type_callback(key_ctx.focused, &evt, type);
+        event_type_callback(key_ctx.focused, &evt, SGL_EVENT_PRESSED);
         key_ctx.pressed = true;
     }
     else {
@@ -784,7 +783,8 @@ void sgl_event_key_enter_pressed(void)
             key_ctx.editing = true;
         }
         else {
-            event_type_callback(key_ctx.focused, &evt, SGL_EVENT_PRESSED);
+            type = sgl_obj_is_keypress_mask(key_ctx.focused) ? SGL_EVENT_CLICKED : SGL_EVENT_PRESSED;
+            event_type_callback(key_ctx.focused, &evt, type);
             key_ctx.pressed = true;
         }
     }
