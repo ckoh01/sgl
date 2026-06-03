@@ -250,7 +250,7 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t *obj, sgl_even
 
     case SGL_EVENT_KEY_DOWN:
     case SGL_EVENT_KEY_RIGHT: {
-        if (dropdown->item_num == 0) break;
+        if (dropdown->item_num == 0 || (!dropdown->is_open)) break;
         if (dropdown->item_selected < dropdown->item_num - 1) {
             dropdown->item_selected++;
             if (dropdown->is_open) {
@@ -262,7 +262,7 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t *obj, sgl_even
 
     case SGL_EVENT_KEY_UP:
     case SGL_EVENT_KEY_LEFT: {
-        if (dropdown->item_num == 0) break;
+        if (dropdown->item_num == 0 || (!dropdown->is_open)) break;
         if (dropdown->item_selected > 0) {
             dropdown->item_selected--;
             if (dropdown->is_open) {
