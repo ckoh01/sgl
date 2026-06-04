@@ -540,6 +540,10 @@ static void event_type_callback(struct sgl_obj *obj, sgl_event_t *evt, sgl_event
     evt->pos.x = SGL_POS_MIN;
     evt->pos.y = SGL_POS_MIN;
     obj->construct_fn(NULL, obj, evt);
+
+    if (obj->event_fn) {
+        obj->event_fn(evt);
+    }
 }
 
 /**
