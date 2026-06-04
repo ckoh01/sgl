@@ -62,7 +62,7 @@ static struct event_context {
 /**
  * @brief key group active
  */
-sgl_key_group_t *key_grp_active = NULL;
+static sgl_key_group_t *key_grp_active = NULL;
 
 #define grp_get_index(group, index)          (group)->obj[group->index]
 #define grp_get_focused(group)               (group)->obj[group->focused]
@@ -675,6 +675,26 @@ void sgl_key_group_remove_obj(sgl_key_group_t *group, struct sgl_obj *obj)
             group->obj[i] = NULL;
             break;
         }
+    }
+}
+
+/**
+ * @brief Load a key group
+ * @param group The pointer to the key group
+ * @return none
+ */
+void sgl_key_group_load(sgl_key_group_t *group)
+{
+    if (group) {
+        if (grp_active_is_focused()) {
+            event_set_focus(grp_active_get_focused(), false);
+            key_grp_active->focused = -1;
+            key_grp_active->editing = false;
+        }
+
+        key_grp_active = group;
+        key_grp_active->focused = -1;
+        key_grp_active->editing = false;
     }
 }
 

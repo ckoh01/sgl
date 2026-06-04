@@ -306,6 +306,13 @@ void sgl_key_group_add_obj(sgl_key_group_t *group, struct sgl_obj *obj);
 void sgl_key_group_remove_obj(sgl_key_group_t *group, struct sgl_obj *obj);
 
 /**
+ * @brief Load a key group
+ * @param group The pointer to the key group
+ * @return none
+ */
+void sgl_key_group_load(sgl_key_group_t *group);
+
+/**
  * @brief Navigate to next/prev focus
  * @param type The event type
  * @param forward The direction of navigation
