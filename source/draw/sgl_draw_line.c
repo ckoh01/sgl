@@ -98,7 +98,6 @@ void sgl_draw_fill_vline(sgl_surf_t *surf, sgl_area_t *area, int16_t x, int16_t 
     }
 }
 
-
 /**
  * @brief draw a slanted line with alpha
  * @param surf surface
@@ -119,14 +118,11 @@ void draw_line_fill_slanted(sgl_surf_t *surf, sgl_area_t *area, int16_t x1, int1
     const int32_t bay = (int32_t)y2 - y1;
     const int32_t b_sqd = bax * bax + bay * bay;
     if (b_sqd == 0) return;
-
     const uint32_t sqrt_bsqd = sgl_sqrt((uint32_t)b_sqd);
     const int32_t inv_len = (int32_t)((65536LL + sqrt_bsqd / 2) / sqrt_bsqd);
-
     const int32_t inner_limit = (thickness - 1) << 8;
     const int32_t outer_limit = thickness << 8;
     const int32_t aa_range = outer_limit - inner_limit;
-
     sgl_area_t clip = SGL_AREA_MAX;
     sgl_area_t c_rect = {
         .x1 = (x1 < x2 ? x1 : x2) - thickness,
@@ -134,52 +130,90 @@ void draw_line_fill_slanted(sgl_surf_t *surf, sgl_area_t *area, int16_t x1, int1
         .y1 = (y1 < y2 ? y1 : y2) - thickness,
         .y2 = (y1 > y2 ? y1 : y2) + thickness,
     };
+
     sgl_surf_clip_area_return(surf, area, &clip);
     if (!sgl_area_selfclip(&clip, &c_rect)) return;
-
-    sgl_color_t *buf = sgl_surf_get_buf(surf, clip.x1 - surf->x1, clip.y1 - surf->y1);
     const int32_t stride = surf->w;
 
+    sgl_color_t *row_base = sgl_surf_get_buf(surf, clip.x1 - surf->x1, clip.y1 - surf->y1);
+    const int64_t len       = (int64_t)sqrt_bsqd;
+    const int64_t band_half = (int64_t)(thickness + 1) * len; /* |cross| threshold, +1 pad */
+    const int32_t cap_r     = thickness + 1;                  /* endpoint cap radius, +1 pad */
+    const int64_t cap_r2    = (int64_t)cap_r * cap_r;
+
     for (int y = clip.y1; y <= clip.y2; y++) {
-        sgl_color_t *blend = buf;
         const int32_t pay = (int32_t)y - y1;
-
-        int32_t dot   = ((int32_t)clip.x1 - x1) * bax + pay * bay;
-        int32_t cross = ((int32_t)clip.x1 - x1) * bay - pay * bax;
-
-        for (int x = clip.x1; x <= clip.x2; x++, blend++) {
-            const int32_t cur_dot   = dot;
-            const int32_t cur_cross = cross;
-            dot   += bax;
-            cross += bay;
-
-            int32_t dist_q8;
-            const int32_t abs_cross = (cur_cross >= 0) ? cur_cross : -cur_cross;
-
-            if (cur_dot >= 0 && cur_dot <= b_sqd) {
-                dist_q8 = (int32_t)(((int64_t)abs_cross * inv_len) >> 8);
+        int32_t row_start = clip.x2 + 1;   /* default: empty row */
+        int32_t row_end   = clip.x1 - 1;
+        if (bay != 0) {
+            const int64_t c0 = -(int64_t)x1 * bay - (int64_t)pay * bax;
+            const int64_t e1  = ( band_half - c0) / bay;
+            const int64_t e2  = (-band_half - c0) / bay;
+            const int64_t xlo = e1 < e2 ? e1 : e2;
+            const int64_t xhi = e1 > e2 ? e1 : e2;
+            const int32_t bx1 = (int32_t)xlo - 2;
+            const int32_t bx2 = (int32_t)xhi + 2;
+            if (bx1 < row_start) row_start = bx1;
+            if (bx2 > row_end)   row_end   = bx2;
+        }
+        else {
+            const int32_t dy = pay < 0 ? -pay : pay;
+            if ((int64_t)dy * len <= band_half) {
+                row_start = clip.x1;
+                row_end   = clip.x2;
             }
-            else {
-                const int32_t along = (cur_dot < 0) ? -cur_dot : (cur_dot - b_sqd);
-                const uint32_t raw_sq = (uint32_t)((int64_t)along * along + (int64_t)cur_cross * cur_cross);
-                const uint32_t raw_d  = sgl_sqrt(raw_sq);
-                dist_q8 = (int32_t)(((int64_t)raw_d * inv_len) >> 8);
-            }
-
-            if (dist_q8 < inner_limit) {
-                *blend = (alpha == SGL_ALPHA_MAX) ? color : sgl_color_mixer(color, *blend, alpha);
-            }
-            else if (dist_q8 < outer_limit) {
-                const uint32_t c = (uint32_t)((outer_limit - dist_q8) * 255 / aa_range);
-                if (alpha == SGL_ALPHA_MAX) {
-                    *blend = sgl_color_mixer(color, *blend, (uint8_t)c);
-                } else {
-                    const uint8_t final_a = (uint8_t)((c * alpha) >> 8);
-                    *blend = sgl_color_mixer(color, *blend, final_a);
+        }
+        const int64_t dy1  = (int64_t)y - y1;
+        const int64_t rem1 = cap_r2 - dy1 * dy1;
+        if (rem1 >= 0) {
+            const int32_t dx = (int32_t)sgl_sqrt((uint32_t)rem1) + 1;
+            if (x1 - dx < row_start) row_start = x1 - dx;
+            if (x1 + dx > row_end)   row_end   = x1 + dx;
+        }
+        const int64_t dy2  = (int64_t)y - y2;
+        const int64_t rem2 = cap_r2 - dy2 * dy2;
+        if (rem2 >= 0) {
+            const int32_t dx = (int32_t)sgl_sqrt((uint32_t)rem2) + 1;
+            if (x2 - dx < row_start) row_start = x2 - dx;
+            if (x2 + dx > row_end)   row_end   = x2 + dx;
+        }
+        if (row_start < clip.x1) row_start = clip.x1;
+        if (row_end   > clip.x2) row_end   = clip.x2;
+        if (row_start <= row_end) {
+            sgl_color_t *blend = row_base + (row_start - clip.x1);
+            int32_t dot   = ((int32_t)row_start - x1) * bax + pay * bay;
+            int32_t cross = ((int32_t)row_start - x1) * bay - pay * bax;
+            for (int x = row_start; x <= row_end; x++, blend++) {
+                const int32_t cur_dot   = dot;
+                const int32_t cur_cross = cross;
+                dot   += bax;
+                cross += bay;
+                int32_t dist_q8;
+                const int32_t abs_cross = (cur_cross >= 0) ? cur_cross : -cur_cross;
+                if (cur_dot >= 0 && cur_dot <= b_sqd) {
+                    dist_q8 = (int32_t)(((int64_t)abs_cross * inv_len) >> 8);
+                }
+                else {
+                    const int32_t along = (cur_dot < 0) ? -cur_dot : (cur_dot - b_sqd);
+                    const uint32_t raw_sq = (uint32_t)((int64_t)along * along + (int64_t)cur_cross * cur_cross);
+                    const uint32_t raw_d  = sgl_sqrt(raw_sq);
+                    dist_q8 = (int32_t)(((int64_t)raw_d * inv_len) >> 8);
+                }
+                if (dist_q8 < inner_limit) {
+                    *blend = (alpha == SGL_ALPHA_MAX) ? color : sgl_color_mixer(color, *blend, alpha);
+                }
+                else if (dist_q8 < outer_limit) {
+                    const uint32_t c = (uint32_t)((outer_limit - dist_q8) * 255 / aa_range);
+                    if (alpha == SGL_ALPHA_MAX) {
+                        *blend = sgl_color_mixer(color, *blend, (uint8_t)c);
+                    } else {
+                        const uint8_t final_a = (uint8_t)((c * alpha) >> 8);
+                        *blend = sgl_color_mixer(color, *blend, final_a);
+                    }
                 }
             }
         }
-        buf += stride;
+        row_base += stride;
     }
 }
 
