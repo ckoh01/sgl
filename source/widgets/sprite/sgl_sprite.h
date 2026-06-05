@@ -66,6 +66,12 @@ sgl_obj_t* sgl_sprite_create(sgl_obj_t* parent);
  */
 void sgl_sprite_set_alpha(sgl_obj_t *obj, uint8_t alpha);
 
+/**
+ * @brief set the pixmap of the sprite
+ * @param obj sprite object
+ * @param pixmap pixmap of the sprite
+ * @return none
+ */
 void sgl_sprite_set_pixmap(sgl_obj_t *obj, sgl_pixmap_t *pixmap);
 
 #ifdef __cplusplus
