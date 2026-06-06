@@ -156,7 +156,11 @@ static void sgl_analogclock_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_e
             int16_t len = (int16_t)(inner_r * 0.85f);
             int32_t px = (len * n_cos) / SGL_SIN_FIXED_ONE + cx;
             int32_t py = (len * n_sin) / SGL_SIN_FIXED_ONE + cy;
-            draw_line_fill_slanted(surf, &obj->area, cx, cy, px, py, 
+
+            int16_t tail_len = (int16_t)(inner_r * 0.15f); 
+            int32_t sx = cx - (tail_len * n_cos) / SGL_SIN_FIXED_ONE;
+            int32_t sy = cy - (tail_len * n_sin) / SGL_SIN_FIXED_ONE;
+            draw_line_fill_slanted(surf, &obj->area, sx, sy, px, py, 
                                    clock->sec_ptr_width, clock->sec_ptr_color, clock->alpha);
         }
 
