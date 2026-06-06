@@ -196,7 +196,7 @@ sgl_obj_t* sgl_analogclock_create(sgl_obj_t* parent)
     clock->bg_color = SGL_THEME_BG_COLOR;
     clock->scale_color = SGL_THEME_COLOR;
     clock->text_color = SGL_THEME_COLOR;
-    clock->hub_color = SGL_THEME_COLOR;
+    clock->hub_color = SGL_COLOR_RED;
     clock->border_color = SGL_THEME_COLOR;
     clock->hour_ptr_color = SGL_THEME_COLOR;
     clock->min_ptr_color = SGL_THEME_COLOR;
