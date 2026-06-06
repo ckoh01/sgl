@@ -245,7 +245,6 @@ void sgl_textbox_set_border_width(sgl_obj_t *obj, uint8_t width)
     sgl_textbox_t *textbox = sgl_container_of(obj, sgl_textbox_t, obj);
     textbox->bg.border = width;
     sgl_obj_set_border_width(obj, width);
-    sgl_obj_set_dirty(obj);
 }
 
 /**

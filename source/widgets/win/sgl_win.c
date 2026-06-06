@@ -159,7 +159,6 @@ void sgl_win_set_border_width(sgl_obj_t *obj, uint8_t width)
     sgl_win_t *win = sgl_container_of(obj, sgl_win_t, obj);
     win->bg.border = width;
     sgl_obj_set_border_width(obj, width);
-    sgl_obj_set_dirty(obj);
 }
 
 /**

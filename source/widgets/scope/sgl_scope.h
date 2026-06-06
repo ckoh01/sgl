@@ -286,7 +286,6 @@ typedef struct {
      sgl_scope_t *scope = sgl_container_of(obj, sgl_scope_t, obj);
      scope->border_width = width;
      sgl_obj_set_border_width(obj, width);
-     sgl_obj_set_dirty(obj);
  }
  
  /**

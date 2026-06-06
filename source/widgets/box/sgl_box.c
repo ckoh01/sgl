@@ -299,7 +299,6 @@ void sgl_box_set_border_width(sgl_obj_t *obj, uint8_t width)
     sgl_box_t *box = sgl_container_of(obj, sgl_box_t, obj);
     box->bg.border = width;
     sgl_obj_set_border_width(obj, width);
-    sgl_obj_set_dirty(obj);
 }
 
 /**

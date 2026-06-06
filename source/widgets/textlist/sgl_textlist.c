@@ -335,7 +335,6 @@ void sgl_textlist_set_alpha(sgl_obj_t *obj, uint8_t alpha)
 void sgl_textlist_set_border_width(sgl_obj_t *obj, uint8_t width)
 {
     sgl_obj_set_border_width(obj, width);
-    sgl_obj_set_dirty(obj);
 }
 
 /**

@@ -68,6 +68,7 @@
 #include "widgets/battery/sgl_battery.h"
 #include "widgets/gauge/sgl_gauge.h"
 #include "widgets/sprite/sgl_sprite.h"
+#include "widgets/analogclock/sgl_analogclock.h"
 #include "components/timer/sgl_timer.h"
 
 #endif // __SGL_H__

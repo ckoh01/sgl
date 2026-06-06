@@ -214,7 +214,6 @@ void sgl_switch_set_border_color(sgl_obj_t *obj, sgl_color_t color)
 void sgl_switch_set_border_width(sgl_obj_t *obj, int16_t width)
 {
     sgl_obj_set_border_width(obj, width);
-    sgl_obj_set_dirty(obj);
 }
 
 /**

@@ -177,7 +177,6 @@ void sgl_progress_set_border_width(sgl_obj_t *obj, uint8_t width)
     sgl_progress_t *progress = sgl_container_of(obj, sgl_progress_t, obj);
     progress->body.border = width;
     sgl_obj_set_border_width(obj, width);
-    sgl_obj_set_dirty(obj);
 }
 
 /**

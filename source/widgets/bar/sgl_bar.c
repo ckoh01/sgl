@@ -210,7 +210,6 @@ uint8_t sgl_bar_get_value(sgl_obj_t *obj)
 void sgl_bar_set_border_width(sgl_obj_t *obj, uint8_t width)
 {
     sgl_obj_set_border_width(obj, width);
-    sgl_obj_set_dirty(obj);
 }
 
 /**
