@@ -243,7 +243,7 @@ void sgl_draw_character(sgl_surf_t *surf, sgl_area_t *area, int16_t x, int16_t y
 #if (CONFIG_SGL_FONT_COMPRESSED)
     }  /* support compressed font */
     else {
-        uint8_t line_buf[128] = {0};
+        uint8_t line_buf[180] = {0};
         font_rle_init(dot, font->bpp);
 
         for (int y = text_rect.y1; y < clip.y1; y++) {

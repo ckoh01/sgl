@@ -28,76 +28,96 @@
 
 typedef struct sgl_logo {
     sgl_obj_t       obj;
-    uint8_t         progress;
     uint8_t         alpha;
-}sgl_logo_t;
+} sgl_logo_t;
 
-#define SGL_LOGO_W    (26)
-#define SGL_LOGO_H    (14)
-
-const uint8_t sgl_logo_s[][4] = {
-    {0, 0, 8, 2},
-    {0, 2, 2, 8},
-    {2, 6, 8, 8},
-    {6, 8, 8, 14},
-    {0, 12, 6, 14},
-};
-
-const uint8_t sgl_logo_g[][4] = {
-    {9,  0,  17, 2},
-    {9,  2,  11, 14},
-    {11, 12, 17, 14},
-    {15, 6,  17, 12},
-    {13, 6,  15, 8},
-};
-
-const uint8_t sgl_logo_l[][4] = {
-    {18, 0, 20, 14},
-    {20, 12, 26, 14},
-};
 
 static void sgl_logo_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_t *evt)
 {
     sgl_logo_t *logo = (sgl_logo_t*)obj;
-    int16_t w = obj->area.x2 - obj->area.x1 + 1;
-    int16_t h = obj->area.y2 - obj->area.y1 + 1;
+    int16_t w = obj->coords.x2 - obj->coords.x1 + 1;
+    int16_t h = obj->coords.y2 - obj->coords.y1 + 1;
 
-    const float scale_x = w / SGL_LOGO_W;
-    const float scale_y = h / SGL_LOGO_H;
-    sgl_rect_t rect;
+    #define NORMALIZATION_FACTOR    1024
+    #define rel_value(v)            ((v) * w / NORMALIZATION_FACTOR)
+    #define pos_x_val(x)            ((x) * w / NORMALIZATION_FACTOR + obj->coords.x1)
+    #define pos_y_val(y)            ((y) * h / NORMALIZATION_FACTOR + obj->coords.y1)
+
+    sgl_rect_t rect = {
+        .x1 = pos_x_val(176),
+        .y1 = pos_y_val(176),
+        .x2 = pos_x_val(848),
+        .y2 = pos_y_val(848),
+    };
+
+    sgl_rect_t sw_rect = {
+        .x1 = pos_x_val(369),
+        .y1 = pos_y_val(340),
+        .x2 = pos_x_val(655),
+        .y2 = pos_y_val(490),
+    };
+
+    sgl_rect_t sw_rect2 = {
+        .x1 = pos_x_val(369),
+        .y1 = pos_y_val(539),
+        .x2 = pos_x_val(655),
+        .y2 = pos_y_val(684),
+    };
+
+    const int16_t pin_w = 60;
+    const int16_t pin_gap = 66;
 
     if(evt->type == SGL_EVENT_DRAW_MAIN) {
         sgl_area_t clip;
-
         if (!sgl_surf_clip(surf, &obj->area, &clip)) {
             return;
         }
 
-        for (uint32_t i = 0; i < SGL_ARRAY_SIZE(sgl_logo_s); i++) {
-            rect.x1 = sgl_logo_s[i][0] * scale_x + obj->area.x1;
-            rect.y1 = sgl_logo_s[i][1] * scale_y + obj->area.y1;
-            rect.x2 = sgl_logo_s[i][2] * scale_x + obj->area.x1 - 1;
-            rect.y2 = sgl_logo_s[i][3] * scale_y + obj->area.y1 - 1;
+        sgl_draw_fill_rect_border(surf, &clip, &rect,
+                                  rel_value(40), SGL_COLOR_BLUE, rel_value(51), logo->alpha);
 
-            sgl_draw_fill_rect(surf, &clip, &rect, obj->radius, SGL_COLOR_RED, logo->alpha);
+        sgl_draw_fill_rect_border(surf, &clip, &sw_rect,
+                                  rel_value(75), SGL_COLOR_BLUE, rel_value(20), logo->alpha);
+        sgl_draw_fill_rect(surf, &clip, &sw_rect2,
+                                  rel_value(75), SGL_COLOR_BLUE, logo->alpha);
+
+        sgl_draw_fill_circle(surf, &clip, pos_x_val(446), pos_y_val(410), rel_value(60), SGL_COLOR_BLUE, logo->alpha);
+        sgl_rect_t pin_rect;
+
+        for (int i = 0, x = 230; i < 5; i++) {
+            pin_rect.x1 = pos_x_val(x);
+            pin_rect.y1 = pos_y_val(0);
+            pin_rect.x2 = pos_x_val(x + pin_w);
+            pin_rect.y2 = pos_y_val(130);
+            sgl_draw_fill_rect(surf, &clip, &pin_rect, 0, SGL_COLOR_BLUE, logo->alpha);
+            x += pin_w + pin_gap;
         }
 
-        for (uint32_t i = 0; i < SGL_ARRAY_SIZE(sgl_logo_g); i++) {
-            rect.x1 = sgl_logo_g[i][0] * scale_x + obj->area.x1;
-            rect.y1 = sgl_logo_g[i][1] * scale_y + obj->area.y1;
-            rect.x2 = sgl_logo_g[i][2] * scale_x + obj->area.x1 - 1;
-            rect.y2 = sgl_logo_g[i][3] * scale_y + obj->area.y1 - 1;
-
-            sgl_draw_fill_rect(surf, &clip, &rect, obj->radius, SGL_COLOR_GREEN, logo->alpha);
+        for (int i = 0, x = 230; i < 5; i++) {
+            pin_rect.x1 = pos_x_val(x);
+            pin_rect.y1 = pos_y_val(894);
+            pin_rect.x2 = pos_x_val(x + pin_w);
+            pin_rect.y2 = pos_y_val(1024);
+            sgl_draw_fill_rect(surf, &clip, &pin_rect, 0, SGL_COLOR_BLUE, logo->alpha);
+            x += pin_w + pin_gap;
         }
 
-        for (uint32_t i = 0; i < SGL_ARRAY_SIZE(sgl_logo_l); i++) {
-            rect.x1 = sgl_logo_l[i][0] * scale_x + obj->area.x1;
-            rect.y1 = sgl_logo_l[i][1] * scale_y + obj->area.y1;
-            rect.x2 = sgl_logo_l[i][2] * scale_x + obj->area.x1 - 1;
-            rect.y2 = sgl_logo_l[i][3] * scale_y + obj->area.y1 - 1;
+        for (int i = 0, y = 230; i < 5; i++) {
+            pin_rect.x1 = pos_x_val(0);
+            pin_rect.y1 = pos_y_val(y);
+            pin_rect.x2 = pos_x_val(130);
+            pin_rect.y2 = pos_y_val(y + pin_w);
+            sgl_draw_fill_rect(surf, &clip, &pin_rect, 0, SGL_COLOR_BLUE, logo->alpha);
+            y += pin_w + pin_gap;
+        }
 
-            sgl_draw_fill_rect(surf, &clip, &rect, obj->radius, SGL_COLOR_BLUE, logo->alpha);
+        for(int i = 0, y = 230; i < 5; i++) {
+            pin_rect.x1 = pos_x_val(894);
+            pin_rect.y1 = pos_y_val(y);
+            pin_rect.x2 = pos_x_val(1024);
+            pin_rect.y2 = pos_y_val(y + pin_w);
+            sgl_draw_fill_rect(surf, &clip, &pin_rect, 0, SGL_COLOR_BLUE, logo->alpha);
+            y += pin_w + pin_gap;
         }
     }
 }
@@ -143,7 +163,8 @@ void sgl_logo_anim(sgl_anim_t *anim, int32_t value)
 void sgl_boot_logo(void)
 {
     sgl_obj_t *logo = sgl_logo_create(NULL);
-    sgl_obj_set_size(logo, SGL_SCREEN_WIDTH / 3, SGL_SCREEN_HEIGHT / 3);
+    const int16_t logo_size = sgl_min(SGL_SCREEN_WIDTH, SGL_SCREEN_HEIGHT) * 30 / 100;
+    sgl_obj_set_size(logo, logo_size, logo_size);
     sgl_obj_set_pos_align(logo, SGL_ALIGN_CENTER);
     sgl_obj_set_radius(logo, 0);
 

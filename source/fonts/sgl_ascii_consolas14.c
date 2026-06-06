@@ -658,5 +658,4 @@ const sgl_font_t consolas14 = {
     .unicode_num = 2,
 };
 
-
 #endif // !CONFIG_SGL_FONT_CONSOLAS14
