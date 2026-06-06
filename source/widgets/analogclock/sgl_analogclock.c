@@ -79,7 +79,7 @@ static void sgl_analogclock_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_e
 
         if (inner_r <= 0) return; 
 
-        const int16_t hub_r = sgl_max((inner_r + 8) / 8, clock->hub_r);
+        const int16_t hub_r = sgl_max(5, clock->hub_r);
         const int16_t scale_out = inner_r - 2; 
         const int16_t scale_in = scale_out - sgl_max(clock->scale_len, 4);
         sgl_draw_fill_circle(surf, &obj->area, cx, cy, r, clock->bg_color, clock->alpha);
@@ -376,6 +376,42 @@ void sgl_analogclock_set_scale_width(sgl_obj_t *obj, uint8_t width)
 {
     sgl_analogclock_t *clock = sgl_container_of(obj, sgl_analogclock_t, obj);
     clock->scale_width = width;
+    sgl_obj_set_dirty(obj);
+}
+
+/**
+ * @brief Set the hour pointer (hand) width of the clock.
+ * @param obj Pointer to the analog clock object.
+ * @param width The hour pointer width to set.
+ */
+void sgl_analogclock_set_hour_ptr_width(sgl_obj_t *obj, uint8_t width)
+{
+    sgl_analogclock_t *clock = sgl_container_of(obj, sgl_analogclock_t, obj);
+    clock->hour_ptr_width = width;
+    sgl_obj_set_dirty(obj);
+}
+
+/**
+ * @brief Set the minute pointer (hand) width of the clock.
+ * @param obj Pointer to the analog clock object.
+ * @param width The minute pointer width to set.
+ */
+void sgl_analogclock_set_min_ptr_width(sgl_obj_t *obj, uint8_t width)
+{
+    sgl_analogclock_t *clock = sgl_container_of(obj, sgl_analogclock_t, obj);
+    clock->min_ptr_width = width;
+    sgl_obj_set_dirty(obj);
+}
+
+/**
+ * @brief Set the second pointer (hand) width of the clock.
+ * @param obj Pointer to the analog clock object.
+ * @param width The second pointer width to set.
+ */
+void sgl_analogclock_set_sec_ptr_width(sgl_obj_t *obj, uint8_t width)
+{
+    sgl_analogclock_t *clock = sgl_container_of(obj, sgl_analogclock_t, obj);
+    clock->sec_ptr_width = width;
     sgl_obj_set_dirty(obj);
 }
 

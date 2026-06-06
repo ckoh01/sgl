@@ -174,6 +174,27 @@ void sgl_analogclock_set_hub_radius(sgl_obj_t *obj, uint8_t radius);
 void sgl_analogclock_set_scale_width(sgl_obj_t *obj, uint8_t width);
 
 /**
+ * @brief Set the hour pointer (hand) width of the clock.
+ * @param obj Pointer to the analog clock object.
+ * @param width The hour pointer width to set.
+ */
+void sgl_analogclock_set_hour_ptr_width(sgl_obj_t *obj, uint8_t width);
+
+/**
+ * @brief Set the minute pointer (hand) width of the clock.
+ * @param obj Pointer to the analog clock object.
+ * @param width The minute pointer width to set.
+ */
+void sgl_analogclock_set_min_ptr_width(sgl_obj_t *obj, uint8_t width);
+
+/**
+ * @brief Set the second pointer (hand) width of the clock.
+ * @param obj Pointer to the analog clock object.
+ * @param width The second pointer width to set.
+ */
+void sgl_analogclock_set_sec_ptr_width(sgl_obj_t *obj, uint8_t width);
+
+/**
  * @brief Set the overall alpha (transparency) of the clock.
  * @param obj Pointer to the analog clock object.
  * @param alpha The alpha value to set (0-255).
