@@ -205,7 +205,7 @@ sgl_obj_t* sgl_analogclock_create(sgl_obj_t* parent)
     clock->scale_width = 2;
     clock->hour_ptr_width = 4;
     clock->min_ptr_width = 3;
-    clock->sec_ptr_width = 1;
+    clock->sec_ptr_width = 2;
     clock->hub_r = 4;
     clock->scale_len = 8;
     clock->font = sgl_get_system_font();
