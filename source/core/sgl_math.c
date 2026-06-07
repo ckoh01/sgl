@@ -411,8 +411,8 @@ float sgl_atan2f(float y, float x)
         return 0.0f;
     }
 
-    float abs_x = fabsf(x);
-    float abs_y = fabsf(y);
+    float abs_x = sgl_fabsf(x);
+    float abs_y = sgl_fabsf(y);
     float r = 0.0f;
 
     if (abs_x >= abs_y) {

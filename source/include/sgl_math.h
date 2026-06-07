@@ -69,6 +69,19 @@ extern "C" {
 #define SGL_INV_360                       (1.0f / 360.0f)
 
 /**
+ * @brief Calculate the absolute value of a float number.
+ * @param x: float number
+ * @return absolute value of the float number
+ */
+static inline float sgl_fabsf(float x)
+{
+    union { float f; uint32_t i;} u;
+    u.f = x;
+    u.i &= 0x7FFFFFFF;
+    return u.f;
+}
+
+/**
  * @brief Normalize an angle to the range of 0 to 360 degrees.
  * @param angle: Angle in degrees such 0-359
  * @return Angle in degrees such 0-359
