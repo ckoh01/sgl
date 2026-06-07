@@ -154,6 +154,40 @@ int32_t sgl_sin(int16_t angle)
     return ret;
 }
 
+/**
+ * @brief Calculate the sine of an angle
+ * @param angle: Angle in degrees such 0-359
+ * @return sine of the angle from sin0_90_table
+ * @note This function has implemented angle normalization to the range of 0 to 360 degrees.
+ */
+float sgl_sinf(float angle)
+{
+    float scaled = angle * SGL_INV_360;
+    int periods = (int)scaled;
+    if (scaled < 0.0f && scaled != (float)periods) {
+        periods -= 1;
+    }
+
+    angle = (scaled - (float)periods) * 360.0f;
+    int idx = (int)angle; 
+    float fraction = angle - (float)idx;
+    float sign = 1.0f;
+
+    if (idx >= 180) {
+        idx -= 180;
+        sign = -1.0f;
+    }
+    if (idx > 90) {
+        idx = 180 - idx;
+        fraction = -fraction;
+    }
+
+    int16_t y1 = sin0_90_table[idx];
+    int16_t y2 = sin0_90_table[idx == 90 ? 90 : idx + 1];
+    float result = (float)y1 + fraction * (float)(y2 - y1);
+
+    return sign * (result * (1.0f / 32768.0f));
+}
 
 /**
  * @brief  Calculate x number square root
@@ -269,7 +303,7 @@ int32_t sgl_atan2_raw(int x, int y)
  * @return angle
  * @note return angle [0 ~ 359]
 */
-uint16_t sgl_atan2_angle(int x, int y)
+uint16_t sgl_atan2(int x, int y)
 {
     unsigned char negflag;
     unsigned char tempdegree;
@@ -329,6 +363,80 @@ uint16_t sgl_atan2_angle(int x, int y)
     return degree;
 }
 
+/**
+ * @brief Internal helper function: Reverse-lookup integer angles between 0 and 45 degrees using the existing sine table
+ * @note Principle: Within the 0-45 degree range, given an input slope `ratio` = y/x, a binary search is used to find the 
+ *       angle that satisfies `sin(a)/cos(a) ≈ ratio`
+ */
+static float _atan_lookup_0_45(float ratio)
+{
+    int low = 0;
+    int high = 45;
+    int mid;
+
+    int32_t target_ratio_q15 = (int32_t)(ratio * 32768.0f);
+
+    while (low <= high) {
+        mid = (low + high) >> 1;
+        int32_t s = sin0_90_table[mid];
+        int32_t c = sin0_90_table[90 - mid];
+        int32_t current_ratio_q15 = (s << 15) / c; 
+
+        if (current_ratio_q15 < target_ratio_q15) {
+            low = mid + 1;
+        }
+        else {
+            high = mid - 1;
+        }
+    }
+
+    int32_t s_low = sin0_90_table[low];
+    int32_t c_low = sin0_90_table[90 - low];
+    float actual_ratio = (float)s_low / (float)c_low;
+    return (float)low + (ratio - actual_ratio) * 57.29578f;
+}
+
+/**
+ * @brief Calculate the angle based on the x and y coordinates. This function is a fast algorithm 
+ *        implementation, with reference address: www.RomanBlack.com (Fast XY vector to integer degree algorithm)
+ * 
+ * @param x:  The x coordinate on a circle
+ * @param y:  The y coordinate on a circle
+ * @return angle
+ * @note return angle [0 ~ 359]
+*/
+float sgl_atan2f(float y, float x)
+{
+    if (x == 0.0f && y == 0.0f) {
+        return 0.0f;
+    }
+
+    float abs_x = fabsf(x);
+    float abs_y = fabsf(y);
+    float r = 0.0f;
+
+    if (abs_x >= abs_y) {
+        r = _atan_lookup_0_45(abs_y / abs_x);
+    }
+    else {
+        r = 90.0f - _atan_lookup_0_45(abs_x / abs_y);
+    }
+
+    if (x < 0.0f) {
+        if (y >= 0.0f) {
+            r = 180.0f - r;
+        }
+        else {
+            r = 180.0f + r;
+        }
+    }
+    else {
+        if (y < 0.0f) {
+            r = 360.0f - r;
+        }
+    }
+    return r;
+}
 
 /**
  * @brief Split the length into n parts, with the weight of each part.

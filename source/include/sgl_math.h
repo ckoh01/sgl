@@ -66,6 +66,8 @@ extern "C" {
 #define SGL_SIN_FIXED_ONE                 (32768)
 #define SGL_COS_FIXED_ONE                 (32768)
 
+#define SGL_INV_360                       (1.0f / 360.0f)
+
 /**
  * @brief Normalize an angle to the range of 0 to 360 degrees.
  * @param angle: Angle in degrees such 0-359
@@ -102,6 +104,25 @@ static inline int32_t sgl_cos(int16_t angle)
 }
 
 /**
+ * @brief Calculate the sine of an angle
+ * @param angle: Angle in degrees such 0-359
+ * @return sine of the angle from sin0_90_table
+ * @note This function has implemented angle normalization to the range of 0 to 360 degrees.
+ */
+float sgl_sinf(float angle);
+
+/**
+ * @brief Calculate the cosine of an angle
+ * @param angle: Angle in degrees such 0-359
+ * @return cosine of the angle from sin0_90_table
+ * @note This function has implemented angle normalization to the range of 0 to 360 degrees.
+ */
+static inline float sgl_cosf(float angle)
+{
+    return sgl_sinf(angle + 90.0f);
+}
+
+/**
  * @brief  Calculate x number square root
  * @param  x: x number
  * @retval x number square root
@@ -135,7 +156,18 @@ int32_t sgl_atan2_raw(int x, int y);
  * @return angle
  * @note return angle [0 ~ 359]
 */
-uint16_t sgl_atan2_angle(int x, int y);
+uint16_t sgl_atan2(int x, int y);
+
+/**
+ * @brief Calculate the angle based on the x and y coordinates. This function is a fast algorithm 
+ *        implementation, with reference address: www.RomanBlack.com (Fast XY vector to integer degree algorithm)
+ * 
+ * @param x:  The x coordinate on a circle
+ * @param y:  The y coordinate on a circle
+ * @return angle
+ * @note return angle [0 ~ 359]
+*/
+float sgl_atan2f(float y, float x);
 
 /**
  * @brief Split the length into n parts, with the weight of each part.
