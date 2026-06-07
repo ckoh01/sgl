@@ -143,6 +143,13 @@ static inline float sgl_cosf(float angle)
 uint16_t sgl_sqrt(uint32_t x);
 
 /**
+ * @brief  Calculate x float number square root
+ * @param  x: x number
+ * @retval x number square root
+ */
+float sgl_sqrtf(float x);
+
+/**
  * @brief Calculate error of the square root for a number.
  * @param x The number to calculate the error for.
  * @return The error of the square root. [0 ~ 255]

@@ -24,7 +24,6 @@
 
 #include <sgl_math.h>
 
-
 /**
  * @brief sine table
  * @note the table is used to calculate the sine of an angle
@@ -37,7 +36,6 @@ static const int16_t sin0_90_table[] = {
     29451, 29697, 29934, 30162, 30381, 30591, 30791, 30982, 31163, 31335, 31498, 31650, 31794, 31927, 32051, 32165,
     32269, 32364, 32448, 32523, 32587, 32642, 32687, 32722, 32747, 32762, 32767
 };
-
 
 /**
  * @brief sqrt table, if the number less than 1024, the sqrt root will get by the table
@@ -110,7 +108,6 @@ static const uint8_t sqrt_error_table[] = {
     0x00
 };
 
-
 /**
  * the table will used to calculate the square root of a number
  */
@@ -118,7 +115,6 @@ static const uint8_t sqrt_error_init_table[32] = {
     0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5,
     5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7
 };
-
 
 /**
  * @brief Calculate the sine of an angle
@@ -214,6 +210,19 @@ uint16_t sgl_sqrt(uint32_t x)
     return (uint16_t)(root);
 }
 
+/**
+ * @brief  Calculate x float number square root
+ * @param  x: x number
+ * @retval x number square root
+ */
+float sgl_sqrtf(float x)
+{
+    if (x <= 0.0f) return 0.0f;
+    union { float f; uint32_t i; } u = { .f = x };
+    u.i = 0x5f375a86 - (u.i >> 1);
+    u.f = u.f * (1.5f - 0.5f * x * u.f * u.f);
+    return x * u.f;
+}
 
 /**
  * @brief Calculate error of the square root for a number.
@@ -258,7 +267,6 @@ uint8_t sgl_sqrt_error(uint32_t x)
     return fpr>>osh;
 }
 
-
 /**
  * @brief Calculate the angle based on the x and y coordinates. This function is a fast algorithm
  *         implementation, with reference address: www.RomanBlack.com (Fast XY vector to integer degree algorithm)
@@ -292,7 +300,6 @@ int32_t sgl_atan2_raw(int x, int y)
 
     return ret;
 }
-
 
 /**
  * @brief Calculate the angle based on the x and y coordinates. This function is a fast algorithm 
@@ -481,7 +488,6 @@ void sgl_split_len(const uint8_t *weight, int count, int16_t length, int16_t gap
     }
 }
 
-
 /**
  * @brief Split the length into n parts, with the weight of each part.
  * @param length: The length to split.
@@ -508,7 +514,6 @@ void sgl_split_len_avg(int length, int count, int16_t gap, int16_t *out)
     }
 }
 
-
 /* Random number generator */
 static size_t rand_next = 1;
 
@@ -523,7 +528,6 @@ int16_t sgl_rand(void)
     rand_next = rand_next * 1103515245 + 12345;
     return (int16_t)((rand_next >> 16) & 0x7FFF);
 }
-
 
 /**
  * @brief Set the seed of the random number generator.
