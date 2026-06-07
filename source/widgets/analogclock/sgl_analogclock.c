@@ -143,7 +143,7 @@ static void sgl_analogclock_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_e
         {
             int32_t n_sin = sgl_sin(m_angle);
             int32_t n_cos = sgl_cos(m_angle);
-            int16_t len = inner_r * 7 / 10;
+            int16_t len = (inner_r * 179) >> 8; 
             int32_t px = (len * n_cos) / SGL_SIN_FIXED_ONE + cx;
             int32_t py = (len * n_sin) / SGL_SIN_FIXED_ONE + cy;
             draw_line_fill_slanted(surf, &obj->area, cx, cy, px, py, 
@@ -153,11 +153,11 @@ static void sgl_analogclock_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_e
         {
             int32_t n_sin = sgl_sin(s_angle);
             int32_t n_cos = sgl_cos(s_angle);
-            int16_t len = inner_r * 85 / 100;
+            int16_t len = (inner_r * 217) >> 8;
             int32_t px = (len * n_cos) / SGL_SIN_FIXED_ONE + cx;
             int32_t py = (len * n_sin) / SGL_SIN_FIXED_ONE + cy;
 
-            int16_t tail_len = inner_r * 15 / 100; 
+            int16_t tail_len = (inner_r * 39) >> 8; 
             int32_t sx = cx - (tail_len * n_cos) / SGL_SIN_FIXED_ONE;
             int32_t sy = cy - (tail_len * n_sin) / SGL_SIN_FIXED_ONE;
             draw_line_fill_slanted(surf, &obj->area, sx, sy, px, py, 
