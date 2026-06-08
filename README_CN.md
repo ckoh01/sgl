@@ -49,4 +49,6 @@ cd demo && make -j8
 ## 4. 运行
 执行 `make run` 命令运行    
      
+社区论坛: https://sgl.openbfdev.com
+
 QQ群: 544602724
