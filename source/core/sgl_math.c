@@ -158,31 +158,33 @@ int32_t sgl_sin(int16_t angle)
  */
 float sgl_sinf(float angle)
 {
-    float scaled = angle * SGL_INV_360;
-    int periods = (int)scaled;
-    if (scaled < 0.0f && scaled != (float)periods) {
-        periods -= 1;
+    int32_t tick = (int32_t)(angle * 256.0f);
+    tick = tick % 92160;
+    if (tick < 0) tick += 92160;
+
+    int32_t sign = 1;
+    if (tick >= 46080) {
+        tick -= 46080;
+        sign = -1;
     }
 
-    angle = (scaled - (float)periods) * 360.0f;
-    int idx = (int)angle; 
-    float fraction = angle - (float)idx;
-    float sign = 1.0f;
-
-    if (idx >= 180) {
-        idx -= 180;
-        sign = -1.0f;
+    if (tick > 23040) {
+        tick = 46080 - tick;
     }
-    if (idx > 90) {
-        idx = 180 - idx;
-        fraction = -fraction;
-    }
-
+    int idx  = tick >> 8;
+    int frac = tick & 0xFF;
     int16_t y1 = sin0_90_table[idx];
-    int16_t y2 = sin0_90_table[idx == 90 ? 90 : idx + 1];
-    float result = (float)y1 + fraction * (float)(y2 - y1);
 
-    return sign * (result * (1.0f / 32768.0f));
+    int32_t interp;
+    if (frac == 0) {
+        interp = (int32_t)y1;
+    }
+    else {
+        int16_t y2 = sin0_90_table[idx + 1];
+        interp = (int32_t)y1 + (((int32_t)(y2 - y1) * frac) >> 8);
+    }
+
+    return (float)(interp * sign) * (1.0f / 32768.0f);
 }
 
 /**
@@ -382,9 +384,24 @@ float sgl_atan2f_rad(float x, float y)
 {
     float abs_x = sgl_fabsf(x), abs_y = sgl_fabsf(y);
     if (abs_x < 0.000001f && abs_y < 0.000001f) return 0.0f;
-    float a = (abs_x < abs_y) ? abs_x / abs_y : abs_y / abs_x;
+
+    float a;
+    if (abs_x < abs_y) {
+        union { float f; int32_t i; } u = {abs_y};
+        u.i = 0x7EF311C3 - u.i;
+        u.f *= (2.0f - abs_y * u.f);
+        a = abs_x * u.f;
+    }
+    else {
+        union { float f; int32_t i; } u = {abs_x};
+        u.i = 0x7EF311C3 - u.i;
+        u.f *= (2.0f - abs_x * u.f);
+        a = abs_y * u.f;
+    }
+
     float s = a * a;
     float r = ((-0.0464964749f * s + 0.15931422f) * s - 0.327622764f) * s * a + a;
+
     if (abs_y > abs_x) r = 1.57079637f - r;
     if (x < 0.0f)      r = 3.14159274f - r;
     if (y < 0.0f)      r = -r;
