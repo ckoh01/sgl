@@ -211,7 +211,7 @@ static void sgl_ext_img_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event
             }
         }
 
-        if (ext_img->pixmap_auto && (clip.y2 == surf->dirty->y2 || clip.y2 == obj->area.y2)) {
+        if (ext_img->pixmap_auto && sgl_obj_draw_complete(obj, surf, &clip)) {
             uint32_t pixmap_idx = ext_img->pixmap_idx + 1;
             ext_img->pixmap_idx = pixmap_idx >= ext_img->pixmap_num ? 0 : pixmap_idx;
             sgl_obj_set_dirty(obj);

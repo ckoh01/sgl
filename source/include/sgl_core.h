@@ -1931,6 +1931,19 @@ static inline void sgl_area_selfmerge(sgl_area_t *merge, sgl_area_t *area)
 }
 
 /**
+ * @brief check object draw complete
+ * @param obj object
+ * @param surf surface
+ * @param clip clip area
+ * @return true: draw complete, otherwise false
+ * @note: this function is unsafe, you should check the obj, surf and clip is not NULL by yourself
+ */
+static inline bool sgl_obj_draw_complete(sgl_obj_t *obj, sgl_surf_t *surf, sgl_area_t *clip)
+{
+    return (clip->y2 == surf->dirty->y2 || clip->y2 == obj->area.y2);
+}
+
+/**
  * @brief sgl global initialization
  * @param none
  * @return int, 0 means success, others means failed
