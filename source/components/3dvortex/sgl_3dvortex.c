@@ -339,7 +339,7 @@ static void sgl_3dvortex_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_even
             sgl_draw_fill_rect(surf, &clip, &rect, 0, col, alpha);
         }
         vortex->update = false;
-        if (clip.y2 == surf->dirty->y2) {
+        if (sgl_obj_draw_complete(obj, surf, &clip)) {
             v->frameNo++;
             sgl_obj_set_dirty(obj);
             vortex->update = true;
