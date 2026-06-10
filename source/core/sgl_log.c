@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-
 #if CONFIG_SGL_DEBUG
 
 /**
@@ -60,7 +59,6 @@ void sgl_log(const char *level, const char * format, ...)
 
     sgl_log_stdout(buffer);
 }
-
 
 /**
  * @brief sgl assert handler, used to handle assertions

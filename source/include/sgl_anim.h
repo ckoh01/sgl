@@ -160,6 +160,17 @@ static inline void sgl_anim_set_data(sgl_anim_t *anim, void *data)
 }
 
 /**
+ * @brief get animation private data
+ * @param  anim animation object
+ * @return pointer to private data
+ */
+static inline void* sgl_anim_get_data(sgl_anim_t *anim)
+{
+    SGL_ASSERT(anim != NULL);
+    return anim->data;
+}
+
+/**
  * @brief set animation path callback function
  * @param  anim animation object
  * @param  path_cb path callback function
@@ -344,6 +355,101 @@ int32_t sgl_anim_path_ease_in(uint16_t elaps, uint16_t duration, int32_t start, 
  */
 int32_t sgl_anim_path_overshoot(uint16_t elaps, uint16_t duration, int32_t start, int32_t end);
 #define SGL_ANIM_PATH_OVERSHOOT  sgl_anim_path_overshoot
+
+/**
+ * sgl_anim_path_ease_out_back - Ease out with slight overshoot and settle back
+ *
+ * Standard cubic-bezier(0.18, 0.89, 0.32, 1.28) approximation using integer math.
+ * Creates a natural "pop" effect when elements appear or stop.
+ */
+int32_t sgl_anim_path_ease_out_back(uint16_t elaps, uint16_t duration, int32_t start, int32_t end);
+#define SGL_ANIM_PATH_EASE_OUT_BACK  sgl_anim_path_ease_out_back
+
+/**
+ * sgl_anim_path_ease_in_out_sine - Smooth sinusoidal ease-in-out
+ *
+ * Uses cosine curve for perfectly symmetric acceleration/deceleration.
+ * Gentler than cubic ease-in-out, ideal for page transitions.
+ */
+int32_t sgl_anim_path_ease_in_out_sine(uint16_t elaps, uint16_t duration, int32_t start, int32_t end);
+#define SGL_ANIM_PATH_EASE_IN_OUT_SINE  sgl_anim_path_ease_in_out_sine
+
+/**
+ * sgl_anim_path_ease_out_quart - Quartic ease-out animation path
+ *
+ * Stronger deceleration than cubic ease-out.
+ * Formula: 1 - (1-t)^4, implemented purely with integer multiplication.
+ */
+int32_t sgl_anim_path_ease_out_quart(uint16_t elaps, uint16_t duration, int32_t start, int32_t end);
+#define SGL_ANIM_PATH_EASE_OUT_QUART  sgl_anim_path_ease_out_quart
+
+/**
+ * sgl_anim_path_ease_in_out_elastic - Spring-like elastic animation
+ *
+ * Combines sine wave oscillation with exponential decay envelope.
+ * Pure integer implementation avoiding float sin/cos/exp.
+ */
+int32_t sgl_anim_path_ease_in_out_elastic(uint16_t elaps, uint16_t duration, int32_t start, int32_t end);
+#define SGL_ANIM_PATH_EASE_IN_OUT_ELASTIC  sgl_anim_path_ease_in_out_elastic
+
+/**
+ * sgl_anim_path_ease_out_bounce - Realistic bouncing ball effect
+ *
+ * Simulates gravity and elastic collision using piecewise quadratic curves.
+ * Pure integer implementation of the standard CSS/Android bounce easing.
+ */
+int32_t sgl_anim_path_ease_out_bounce(uint16_t elaps, uint16_t duration, int32_t start, int32_t end);
+#define SGL_ANIM_PATH_EASE_OUT_BOUNCE  sgl_anim_path_ease_out_bounce
+
+/**
+ * sgl_anim_path_sine_wave - Continuous sinusoidal wave trajectory
+ *
+ * Creates a smooth, periodic oscillation between start and end values.
+ * Ideal for floating elements, breathing effects, or loading indicators.
+ * @note This is a cyclic path; it does NOT settle at 'end' value.
+ */
+int32_t sgl_anim_path_sine_wave(uint16_t elaps, uint16_t duration, int32_t start, int32_t end);
+#define SGL_ANIM_PATH_SINE_WAVE  sgl_anim_path_sine_wave
+
+/**
+ * sgl_anim_path_damped_spring - Decaying spring oscillation settling at end
+ *
+ * Combines sine wave with linear decay envelope.
+ * Starts with oscillation and smoothly settles exactly at 'end' value.
+ */
+int32_t sgl_anim_path_damped_spring(uint16_t elaps, uint16_t duration, int32_t start, int32_t end);
+#define SGL_ANIM_PATH_DAMPED_SPRING  sgl_anim_path_damped_spring
+
+/**
+ * sgl_anim_path_step - Discrete stepped animation (no interpolation)
+ *
+ * Divides animation into equal steps and jumps between them.
+ * Perfect for sprite animations, digit counters, or segmented progress bars.
+ * @param steps     Number of discrete steps (pass via 'start' param repurposed, 
+ *                  or hardcode. Here we use 10 steps as example)
+ */
+int32_t sgl_anim_path_step(uint16_t elaps, uint16_t duration, int32_t start, int32_t end);
+#define SGL_ANIM_PATH_STEP  sgl_anim_path_step
+
+/**
+ * sgl_anim_apply_obj_hori - Move an object horizontally
+ * @param obj       Pointer to the object to move
+ * @param distance  Distance to move the object horizontally
+ * @param duration  Duration of the animation (in milliseconds)
+ * @param effect    Animation path effect (e.g., SGL_ANIM_PATH_EASE_IN_OUT, SGL_ANIM_PATH_EASE_IN, SGL_ANIM_PATH_EASE_OUT)
+ * @return none
+ */
+void sgl_anim_apply_obj_hori(sgl_obj_t *obj, int16_t distance, uint16_t duration, sgl_anim_path_algo_t effect);
+
+/**
+ * sgl_anim_apply_obj_vert - Move an object vertically
+ * @param obj       Pointer to the object to move
+ * @param distance  Distance to move the object vertically
+ * @param duration  Duration of the animation (in milliseconds)
+ * @param effect    Animation path effect (e.g., SGL_ANIM_PATH_EASE_IN_OUT, SGL_ANIM_PATH_EASE_IN, SGL_ANIM_PATH_EASE_OUT)
+ * @return none
+ */
+void sgl_anim_apply_obj_vert(sgl_obj_t *obj, int16_t distance, uint16_t duration, sgl_anim_path_algo_t effect);
 
 #endif // ! CONFIG_SGL_ANIMATION
 

@@ -21,13 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 #include <sgl_core.h>
 #include <sgl_anim.h>
 #include <sgl_math.h>
 #include <sgl_log.h>
 #include <sgl_mm.h>
-
 
 #if (CONFIG_SGL_ANIMATION)
 /* animation context */
@@ -55,7 +53,6 @@ void sgl_anim_init(sgl_anim_t *anim)
     anim->finished = 1;
 }
 
-
 /**
  * @brief dynamic alloc animation object with initialization
  * @param  none
@@ -73,7 +70,6 @@ sgl_anim_t* sgl_anim_create(void)
     return anim;
 }
 
-
 /**
  * @brief add animation object to animation list
  * @param  anim animation object
@@ -85,7 +81,6 @@ static inline void sgl_anim_add(sgl_anim_t *anim)
     anim->finished = 0;
 }
 
-
 /**
  * @brief remove animation object from animation list
  * @param  anim animation object
@@ -96,7 +91,6 @@ static inline void sgl_anim_remove(sgl_anim_t *anim)
     SGL_ASSERT(anim != NULL);
     sgl_list_del_node(&anim->node);
 }
-
 
 /**
  * @brief start animation
@@ -122,7 +116,6 @@ void sgl_anim_start(sgl_anim_t *anim, uint32_t repeat_cnt)
     anim->last_value = anim->start_value;
 }
 
-
 /**
  * @brief stop animation
  * @param  anim animation object
@@ -137,7 +130,6 @@ void sgl_anim_stop(sgl_anim_t *anim)
     }
 }
 
-
 /**
  * @brief delete animation object
  * @param anim animation object
@@ -151,7 +143,6 @@ void sgl_anim_delete(sgl_anim_t *anim)
     } 
     sgl_free(anim);
 }
-
 
 /**
  * @brief animation task, it will foreach all animation
@@ -205,7 +196,6 @@ void sgl_anim_task(void)
     }
 }
 
-
 /**
  * Linear animation path calculation function
  *
@@ -252,7 +242,6 @@ int32_t sgl_anim_path_linear(uint16_t elaps, uint16_t duration, int32_t start, i
     return result;
 }
 
-
 /**
  * sgl_anim_path_ease_in_out - Cubic ease-in-out animation path
  *
@@ -287,7 +276,6 @@ int32_t sgl_anim_path_ease_in_out(uint16_t elaps, uint16_t duration, int32_t sta
     return start + (delta * (32767 - cos_val)) / 65535;
 }
 
-
 /**
  * sgl_anim_path_ease_out - Cubic ease-in animation path
  *
@@ -317,7 +305,6 @@ int32_t sgl_anim_path_ease_out(uint16_t elaps, uint16_t duration, int32_t start,
     return start + ((delta * sin_val) >> 15);
 }
 
-
 /**
  * sgl_anim_path_ease_in - Cubic ease-in animation path
  *
@@ -346,7 +333,6 @@ int32_t sgl_anim_path_ease_in(uint16_t elaps, uint16_t duration, int32_t start, 
     delta = end - start;
     return start + ((delta * (32767 - cos_val)) >> 15);
 }
-
 
 /**
  * sgl_anim_path_overshoot - Overshoot animation path
@@ -383,6 +369,302 @@ int32_t sgl_anim_path_overshoot(uint16_t elaps, uint16_t duration, int32_t start
     }
 
     return start + (int32_t)((diff * progress) >> 14);
+}
+
+/**
+ * sgl_anim_path_ease_out_back - Ease out with slight overshoot and settle back
+ *
+ * Standard cubic-bezier(0.18, 0.89, 0.32, 1.28) approximation using integer math.
+ * Creates a natural "pop" effect when elements appear or stop.
+ */
+int32_t sgl_anim_path_ease_out_back(uint16_t elaps, uint16_t duration, int32_t start, int32_t end)
+{
+    if (elaps >= duration) return end;
+    if (elaps == 0) return start;
+
+    // t in Q15 format [0, 32767]
+    int64_t t = ((int64_t)elaps << 15) / duration;
+    
+    // c1 = 1.70158 -> Q15 = 55754
+    // c3 = c1 + 1  -> Q15 = 88521 (but we use the formula directly to avoid overflow)
+    // Formula: 1 + c3 * pow(t-1, 3) + c1 * pow(t-1, 2)
+    // Rewritten for fixed point: ((t-32767)^2 * (55754*(t-32767) + 88521)) >> 30 + 32767
+    int64_t t_minus_1 = t - 32767; 
+    int64_t t_minus_1_sq = (t_minus_1 * t_minus_1) >> 15;
+    
+    // 55754 * t_minus_1 is safe in int64
+    int64_t inner = ((55754LL * t_minus_1) >> 15) + 88521LL;
+    int64_t progress = ((t_minus_1_sq * inner) >> 15) + 32767;
+
+    int32_t delta = end - start;
+    return start + (int32_t)((delta * progress) >> 15);
+}
+
+/**
+ * sgl_anim_path_ease_in_out_sine - Smooth sinusoidal ease-in-out
+ *
+ * Uses cosine curve for perfectly symmetric acceleration/deceleration.
+ * Gentler than cubic ease-in-out, ideal for page transitions.
+ */
+int32_t sgl_anim_path_ease_in_out_sine(uint16_t elaps, uint16_t duration, int32_t start, int32_t end)
+{
+    if (elaps >= duration) return end;
+    if (elaps == 0) return start;
+
+    // Map elapsed time to [0, 180] degrees for full cosine period
+    int32_t angle = ((int32_t)elaps * 180) / duration;
+    
+    // cos(0)=32767, cos(180)=-32767
+    // progress = (1 - cos(angle)) / 2 = (32767 - cos(angle)) / 65534
+    int32_t cos_val = sgl_cos(angle); 
+    
+    int32_t delta = end - start;
+    // Use 65534 as divisor since max-min of cos in Q15 is 65534
+    return start + (int32_t)(((int64_t)delta * (32767 - cos_val)) / 65534);
+}
+
+/**
+ * sgl_anim_path_ease_out_quart - Quartic ease-out animation path
+ *
+ * Stronger deceleration than cubic ease-out.
+ * Formula: 1 - (1-t)^4, implemented purely with integer multiplication.
+ */
+int32_t sgl_anim_path_ease_out_quart(uint16_t elaps, uint16_t duration, int32_t start, int32_t end)
+{
+    if (elaps >= duration) return end;
+    if (elaps == 0) return start;
+
+    // t in Q15
+    int64_t t = ((int64_t)elaps << 15) / duration;
+    int64_t inv_t = 32767 - t;
+    
+    // (1-t)^4 in Q15: (((inv_t^2)>>15)^2)>>15
+    int64_t inv_t2 = (inv_t * inv_t) >> 15;
+    int64_t inv_t4 = (inv_t2 * inv_t2) >> 15;
+    
+    // progress = 1 - (1-t)^4
+    int64_t progress = 32767 - inv_t4;
+
+    int32_t delta = end - start;
+    return start + (int32_t)((delta * progress) >> 15);
+}
+
+/**
+ * sgl_anim_path_ease_in_out_elastic - Spring-like elastic animation
+ *
+ * Combines sine wave oscillation with exponential decay envelope.
+ * Pure integer implementation avoiding float sin/cos/exp.
+ */
+int32_t sgl_anim_path_ease_in_out_elastic(uint16_t elaps, uint16_t duration, int32_t start, int32_t end)
+{
+    if (elaps >= duration) return end;
+    if (elaps == 0) return start;
+
+    // Normalize t to [0, 32767]
+    int64_t t = ((int64_t)elaps << 15) / duration;
+    
+    // Map to angle: t * 4.5 * PI ≈ t * 14.137 -> Q15 scale factor ~463400
+    // We simplify: use 3 full sine cycles over the duration
+    int32_t angle = (int32_t)((t * 3 * 180) >> 15); // 3 half-periods = 1.5 full cycles
+    
+    int32_t sin_val = sgl_sin(angle % 360); // Handle wrap-around if needed, or rely on sgl_sin
+    
+    // Exponential decay envelope: approximate 2^(-10*t) using linear fade for embedded perf
+    // Envelope goes from 32767 at t=0 to 0 at t=32767
+    int64_t envelope = 32767 - t; 
+    
+    // Combine: base linear progress + damped oscillation
+    // Oscillation amplitude scales with envelope
+    int64_t oscillation = ((int64_t)sin_val * envelope) >> 15;
+    
+    // Blend: 70% linear + 30% oscillation for subtle elastic feel
+    int64_t progress = (t * 22937 + oscillation * 9830) >> 15; // 22937≈0.7*32767, 9830≈0.3*32767
+
+    int32_t delta = end - start;
+    return start + (int32_t)((delta * progress) >> 15);
+}
+
+/**
+ * sgl_anim_path_ease_out_bounce - Realistic bouncing ball effect
+ *
+ * Simulates gravity and elastic collision using piecewise quadratic curves.
+ * Pure integer implementation of the standard CSS/Android bounce easing.
+ */
+int32_t sgl_anim_path_ease_out_bounce(uint16_t elaps, uint16_t duration, int32_t start, int32_t end)
+{
+    if (elaps >= duration) return end;
+    if (elaps == 0) return start;
+
+    // Normalize time to Q15 [0, 32767]
+    int64_t t = ((int64_t)elaps << 15) / duration;
+    int64_t progress = 0;
+
+    // Piecewise quadratic approximation in Q15
+    // Boundaries: 1/2.75≈0.3636(11911), 2/2.75≈0.7272(23822), 2.5/2.75≈0.9090(29778)
+    if (t < 11911) {
+        // 7.5625 * t^2 -> Q15 coeff ≈ 247868 (clamped to safe shift)
+        progress = (247868LL * ((t * t) >> 15)) >> 15;
+    } else if (t < 23822) {
+        int64_t t2 = t - 18181; // t - 1.5/2.75
+        progress = (247868LL * ((t2 * t2) >> 15) >> 15) + 24576; // +0.75*32767
+    } else if (t < 29778) {
+        int64_t t2 = t - 27272; // t - 2.25/2.75
+        progress = (247868LL * ((t2 * t2) >> 15) >> 15) + 29490; // +0.9*32767
+    } else {
+        int64_t t2 = t - 31111; // t - 2.625/2.75
+        progress = (247868LL * ((t2 * t2) >> 15) >> 15) + 31539; // +0.9625*32767
+    }
+
+    int32_t delta = end - start;
+    return start + (int32_t)((delta * progress) >> 15);
+}
+
+/**
+ * sgl_anim_path_sine_wave - Continuous sinusoidal wave trajectory
+ *
+ * Creates a smooth, periodic oscillation between start and end values.
+ * Ideal for floating elements, breathing effects, or loading indicators.
+ * @note This is a cyclic path; it does NOT settle at 'end' value.
+ */
+int32_t sgl_anim_path_sine_wave(uint16_t elaps, uint16_t duration, int32_t start, int32_t end)
+{
+    if (duration == 0) return start;
+
+    // Map elapsed time to full sine cycles
+    // Adjust multiplier (e.g., *360) to control wave frequency
+    int32_t angle = ((int32_t)elaps * 360) / duration; 
+    
+    // sgl_sin returns [-32767, 32767], normalize to [0, 32767] range for amplitude
+    int32_t sin_val = sgl_sin(angle);
+    
+    // Amplitude is half the distance between start and end
+    int32_t amplitude = (end - start) / 2;
+    int32_t center = start + amplitude;
+
+    // Center + amplitude * sin(angle)
+    return center + (int32_t)(((int64_t)amplitude * sin_val) >> 15);
+}
+
+/**
+ * sgl_anim_path_damped_spring - Decaying spring oscillation settling at end
+ *
+ * Combines sine wave with linear decay envelope.
+ * Starts with oscillation and smoothly settles exactly at 'end' value.
+ */
+int32_t sgl_anim_path_damped_spring(uint16_t elaps, uint16_t duration, int32_t start, int32_t end)
+{
+    if (elaps >= duration) return end;
+    if (elaps == 0) return start;
+
+    int64_t t = ((int64_t)elaps << 15) / duration;
+    
+    // Linear base progress from start to end
+    int64_t base_progress = t;
+    
+    // Oscillation: 2.5 full cycles (2.5 * 360 = 900 degrees mapping)
+    int32_t angle = (int32_t)((t * 900) >> 15);
+    int32_t sin_val = sgl_sin(angle);
+    
+    // Decay envelope: (1 - t) in Q15, ensures oscillation dies out at t=1
+    int64_t envelope = 32767 - t;
+    
+    // Blend: base progress + damped oscillation offset
+    // Oscillation strength controlled by divisor (adjust 3 for more/less wobble)
+    int64_t oscillation = ((int64_t)sin_val * envelope) >> 15;
+    int64_t progress = base_progress + (oscillation / 3);
+
+    int32_t delta = end - start;
+    return start + (int32_t)((delta * progress) >> 15);
+}
+
+/**
+ * sgl_anim_path_step - Discrete stepped animation (no interpolation)
+ *
+ * Divides animation into equal steps and jumps between them.
+ * Perfect for sprite animations, digit counters, or segmented progress bars.
+ * @param steps     Number of discrete steps (pass via 'start' param repurposed, 
+ *                  or hardcode. Here we use 10 steps as example)
+ */
+int32_t sgl_anim_path_step(uint16_t elaps, uint16_t duration, int32_t start, int32_t end)
+{
+    if (elaps >= duration) return end;
+    if (elaps == 0) return start;
+
+    // Define number of steps (can be made configurable via macro or extra param)
+    const int32_t NUM_STEPS = 10; 
+    
+    // Calculate current step index using integer division
+    int64_t step_index = ((int64_t)elaps * NUM_STEPS) / duration;
+    
+    // Quantized progress = step_index / NUM_STEPS in Q15
+    int64_t progress = (step_index << 15) / NUM_STEPS;
+
+    int32_t delta = end - start;
+    return start + (int32_t)((delta * progress) >> 15);
+}
+
+/**
+ * sgl_anim_obj_hori_cb - Callback function for horizontal animation
+ * @param anim      Pointer to the animation object
+ * @param value     Current value of the animation
+ * @return none
+ */
+static void sgl_anim_obj_hori_cb(sgl_anim_t *anim, int32_t value)
+{
+    sgl_obj_t *obj = (sgl_obj_t *)anim->data;
+    sgl_obj_set_pos_x(obj, value);
+}
+
+/**
+ * sgl_anim_obj_vert_cb - Callback function for vertical animation
+ * @param anim      Pointer to the animation object
+ * @param value     Current value of the animation
+ * @return none
+ */
+static void sgl_anim_obj_vert_cb(sgl_anim_t *anim, int32_t value)
+{
+    sgl_obj_t *obj = (sgl_obj_t *)anim->data;
+    sgl_obj_set_pos_y(obj, value);
+}
+
+/**
+ * sgl_anim_apply_obj_hori - Move an object horizontally
+ * @param obj       Pointer to the object to move
+ * @param distance  Distance to move the object horizontally
+ * @param duration  Duration of the animation (in milliseconds)
+ * @param effect    Animation path effect (e.g., SGL_ANIM_PATH_EASE_IN_OUT, SGL_ANIM_PATH_EASE_IN, SGL_ANIM_PATH_EASE_OUT)
+ * @return none
+ */
+void sgl_anim_apply_obj_hori(sgl_obj_t *obj, int16_t distance, uint16_t duration, sgl_anim_path_algo_t effect)
+{
+    sgl_anim_t *anim = sgl_anim_create();
+    sgl_anim_set_data(anim, obj);
+    sgl_anim_set_auto_free(anim);
+    sgl_anim_set_start_value(anim, obj->coords.x1);
+    sgl_anim_set_end_value(anim, obj->coords.x1 + distance);
+    sgl_anim_set_act_duration(anim, duration);
+    sgl_anim_set_path(anim, sgl_anim_obj_hori_cb, effect);
+    sgl_anim_start(anim, SGL_ANIM_REPEAT_ONCE);
+}
+
+/**
+ * sgl_anim_apply_obj_vert - Move an object vertically
+ * @param obj       Pointer to the object to move
+ * @param distance  Distance to move the object vertically
+ * @param duration  Duration of the animation (in milliseconds)
+ * @param effect    Animation path effect (e.g., SGL_ANIM_PATH_EASE_IN_OUT, SGL_ANIM_PATH_EASE_IN, SGL_ANIM_PATH_EASE_OUT)
+ * @return none
+ */
+void sgl_anim_apply_obj_vert(sgl_obj_t *obj, int16_t distance, uint16_t duration, sgl_anim_path_algo_t effect)
+{
+    sgl_anim_t *anim = sgl_anim_create();
+    sgl_anim_set_data(anim, obj);
+    sgl_anim_set_auto_free(anim);
+    sgl_anim_set_start_value(anim, obj->coords.y1);
+    sgl_anim_set_end_value(anim, obj->coords.y1 + distance);
+    sgl_anim_set_act_duration(anim, duration);
+    sgl_anim_set_path(anim, sgl_anim_obj_vert_cb, effect);
+    sgl_anim_start(anim, SGL_ANIM_REPEAT_ONCE);
 }
 
 #endif // !CONFIG_SGL_ANIMATION
