@@ -164,7 +164,7 @@ static void sgl_analogclock_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_e
                                    clock->sec_ptr_width, clock->min_ptr_color, clock->alpha);
         }
 
-        sgl_draw_fill_circle(surf, &obj->area, cx - 1, cy - 1, hub_r + 2, clock->min_ptr_color, clock->alpha);
+        sgl_draw_fill_circle(surf, &obj->area, cx - 1, cy - 1, hub_r + 1, clock->min_ptr_color, clock->alpha);
 
         {
             int32_t n_sin = sgl_sin(s_angle);
