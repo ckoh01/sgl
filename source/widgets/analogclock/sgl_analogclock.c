@@ -76,7 +76,12 @@ static void sgl_analogclock_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_e
         
         const int16_t border_w = sgl_min(obj->border, r);
         const int16_t inner_r = r - border_w;
+        const int16_t h_len = inner_r / 2;
+        const int16_t m_len = (inner_r * 160) >> 8;
+        const int16_t s_len_1 = (inner_r * 217) >> 8;
+        const int16_t s_len_2 = (inner_r * 39) >> 8;
 
+        sgl_color_t sub_scale_color = sgl_color_mixer(clock->scale_color, clock->bg_color, 128);
         if (inner_r <= 0) return; 
 
         const int16_t hub_r = sgl_max(5, clock->hub_r);
@@ -85,20 +90,11 @@ static void sgl_analogclock_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_e
         sgl_draw_fill_circle(surf, &obj->area, cx, cy, r, clock->bg_color, clock->alpha);
 
         if (border_w > 0) {
-            sgl_draw_arc_t arc = {
-                .alpha = clock->alpha,
-                .color = clock->border_color,
-                .mode = SGL_ARC_MODE_NORMAL,
-                .cx = cx, .cy = cy,
-                .radius_in = inner_r,
-                .radius_out = r,
-                .start_angle = 0, .end_angle = 360
-            };
-            sgl_draw_fill_arc(surf, &obj->area, &arc);
+            sgl_draw_fill_ring(surf, &obj->area, cx, cy, inner_r, r, clock->bg_color, clock->alpha);
         }
 
-        for (int i = 0; i < 12; i++) {
-            int16_t angle = i * 30;
+        for (int i = 0, j = 0; i < 60; i++, j++) {
+            int16_t angle = i * 6;
             int16_t calc_angle = angle - 90;
             int32_t sin_val = sgl_sin(calc_angle);
             int32_t cos_val = sgl_cos(calc_angle);
@@ -108,18 +104,25 @@ static void sgl_analogclock_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_e
             int32_t x_in  = (scale_in * cos_val) / SGL_SIN_FIXED_ONE + cx;
             int32_t y_in  = (scale_in * sin_val) / SGL_SIN_FIXED_ONE + cy;
 
-            draw_line_fill_slanted(surf, &obj->area, x_out, y_out, x_in, y_in, 
+            if (j == 5) {
+                draw_line_fill_slanted(surf, &obj->area, x_out, y_out, x_in, y_in, 
                                    clock->scale_width, clock->scale_color, clock->alpha);
+                j = 0;
+            }
+            else {
+                draw_line_fill_slanted(surf, &obj->area, x_out, y_out, x_in, y_in, 
+                                   clock->scale_width, sub_scale_color, clock->alpha);
+            }
 
-            if (clock->font) {
+            if (clock->font && j == 0) {
                 char text[4];
-                sgl_sprintf(text, "%d", i == 0 ? 12 : i);
+                sgl_sprintf(text, "%d", i == 0 ? 12 : i / 5);
                 int16_t text_r = scale_in - sgl_font_get_height(clock->font) - 2;
                 int32_t tx = (text_r * cos_val) / SGL_SIN_FIXED_ONE + cx;
                 int32_t ty = (text_r * sin_val) / SGL_SIN_FIXED_ONE + cy;
                 int16_t tw = sgl_font_get_string_width(text, clock->font);
                 int16_t th = sgl_font_get_height(clock->font);
-                
+
                 sgl_draw_string(surf, &obj->area, 
                                 tx - tw / 2, ty - th / 2, 
                                 text, clock->text_color, clock->alpha, clock->font);
@@ -133,38 +136,50 @@ static void sgl_analogclock_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_e
         {
             int32_t n_sin = sgl_sin(h_angle);
             int32_t n_cos = sgl_cos(h_angle);
-            int16_t len = inner_r / 2;
-            int32_t px = (len * n_cos) / SGL_SIN_FIXED_ONE + cx;
-            int32_t py = (len * n_sin) / SGL_SIN_FIXED_ONE + cy;
-            draw_line_fill_slanted(surf, &obj->area, cx, cy, px, py, 
+            int32_t px = (h_len * n_cos) / SGL_SIN_FIXED_ONE + cx;
+            int32_t py = (h_len * n_sin) / SGL_SIN_FIXED_ONE + cy;
+
+            int32_t sx = cx + (s_len_2 * n_cos) / SGL_SIN_FIXED_ONE;
+            int32_t sy = cy + (s_len_2 * n_sin) / SGL_SIN_FIXED_ONE;
+
+            draw_line_fill_slanted(surf, &obj->area, sx, sy, px, py, 
                                    clock->hour_ptr_width, clock->hour_ptr_color, clock->alpha);
+            draw_line_fill_slanted(surf, &obj->area, cy, cy, sx, sy,
+                                   clock->sec_ptr_width, clock->hour_ptr_color, clock->alpha);
         }
 
         {
             int32_t n_sin = sgl_sin(m_angle);
             int32_t n_cos = sgl_cos(m_angle);
-            int16_t len = (inner_r * 179) >> 8; 
-            int32_t px = (len * n_cos) / SGL_SIN_FIXED_ONE + cx;
-            int32_t py = (len * n_sin) / SGL_SIN_FIXED_ONE + cy;
-            draw_line_fill_slanted(surf, &obj->area, cx, cy, px, py, 
+
+            int32_t px = (m_len * n_cos) / SGL_SIN_FIXED_ONE + cx;
+            int32_t py = (m_len * n_sin) / SGL_SIN_FIXED_ONE + cy;
+
+            int32_t sx = cx + (s_len_2 * n_cos) / SGL_SIN_FIXED_ONE;
+            int32_t sy = cy + (s_len_2 * n_sin) / SGL_SIN_FIXED_ONE;
+
+            draw_line_fill_slanted(surf, &obj->area, sx, sy, px, py, 
                                    clock->min_ptr_width, clock->min_ptr_color, clock->alpha);
+            draw_line_fill_slanted(surf, &obj->area, cy, cy, sx, sy,
+                                   clock->sec_ptr_width, clock->min_ptr_color, clock->alpha);
         }
+
+        sgl_draw_fill_circle(surf, &obj->area, cx - 1, cy - 1, hub_r + 2, clock->min_ptr_color, clock->alpha);
 
         {
             int32_t n_sin = sgl_sin(s_angle);
             int32_t n_cos = sgl_cos(s_angle);
-            int16_t len = (inner_r * 217) >> 8;
-            int32_t px = (len * n_cos) / SGL_SIN_FIXED_ONE + cx;
-            int32_t py = (len * n_sin) / SGL_SIN_FIXED_ONE + cy;
+            int32_t px = (s_len_1 * n_cos) / SGL_SIN_FIXED_ONE + cx;
+            int32_t py = (s_len_1 * n_sin) / SGL_SIN_FIXED_ONE + cy;
 
-            int16_t tail_len = (inner_r * 39) >> 8; 
-            int32_t sx = cx - (tail_len * n_cos) / SGL_SIN_FIXED_ONE;
-            int32_t sy = cy - (tail_len * n_sin) / SGL_SIN_FIXED_ONE;
+            int32_t sx = cx - (s_len_2 * n_cos) / SGL_SIN_FIXED_ONE;
+            int32_t sy = cy - (s_len_2 * n_sin) / SGL_SIN_FIXED_ONE;
             draw_line_fill_slanted(surf, &obj->area, sx, sy, px, py, 
                                    clock->sec_ptr_width, clock->sec_ptr_color, clock->alpha);
         }
 
-        sgl_draw_fill_circle(surf, &obj->area, cx, cy, hub_r, clock->hub_color, clock->alpha);
+        sgl_draw_fill_circle(surf, &obj->area, cx - 1, cy - 1, hub_r, clock->hub_color, clock->alpha);
+        sgl_draw_fill_circle(surf, &obj->area, cx - 1, cy - 1, hub_r - 2, clock->bg_color, clock->alpha);
     }
 }
 
@@ -190,7 +205,7 @@ sgl_obj_t* sgl_analogclock_create(sgl_obj_t* parent)
     sgl_obj_t *obj = &clock->obj;
     sgl_obj_init(obj, parent);
     obj->construct_fn = sgl_analogclock_construct_cb;
-    sgl_obj_set_border_width(obj, 2);
+    sgl_obj_set_border_width(obj, 0);
 
     clock->alpha = SGL_THEME_ALPHA;
     clock->bg_color = SGL_THEME_BG_COLOR;
@@ -201,12 +216,12 @@ sgl_obj_t* sgl_analogclock_create(sgl_obj_t* parent)
     clock->hour_ptr_color = SGL_THEME_COLOR;
     clock->min_ptr_color = SGL_THEME_COLOR;
     clock->sec_ptr_color = SGL_COLOR_RED;
-    
-    clock->scale_width = 2;
-    clock->hour_ptr_width = 4;
-    clock->min_ptr_width = 3;
+
+    clock->scale_width = 1;
+    clock->hour_ptr_width = 5;
+    clock->min_ptr_width = 5;
     clock->sec_ptr_width = 2;
-    clock->hub_r = 4;
+    clock->hub_r = 6;
     clock->scale_len = 8;
     clock->font = sgl_get_system_font();
 
