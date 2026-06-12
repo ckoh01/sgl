@@ -60,7 +60,7 @@ static void sgl_dropdown_clamp_pos_y(sgl_dropdown_t *dropdown, int list_h, int i
         dropdown->pos_y = 0;
     }
     else {
-        const int min_pos = list_h - dropdown->item_num * item_height + item_height / 2;
+        const int min_pos = list_h - dropdown->item_num * item_height;
         if (dropdown->pos_y < min_pos) {
             dropdown->pos_y = min_pos;
         }
@@ -114,7 +114,7 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t *obj, sgl_even
     if (dropdown->option_h == 0) {
         dropdown->option_h = sgl_obj_get_height(obj);
     }
-    const int list_h = dropdown->option_h * dropdown->max_visible_item;
+    const int list_h = item_height * dropdown->max_visible_item;
     sgl_dropdown_item_t *item = dropdown->head;
 
     switch (evt->type) {
@@ -204,7 +204,7 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t *obj, sgl_even
 
     case SGL_EVENT_MOVE_UP:
         if (dropdown->is_open) {
-            if ((dropdown->pos_y + dropdown->item_num * item_height) > (list_h)) {
+            if ((dropdown->pos_y + dropdown->item_num * item_height) >= (list_h - item_height / 2)) {
                 dropdown->pos_y -= evt->distance;
             }
             sgl_obj_set_dirty(obj);
@@ -229,7 +229,7 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t *obj, sgl_even
             }
         } else {
             dropdown->is_open = true;
-            obj->coords.y2 = obj->coords.y1 + dropdown->option_h 
+            obj->coords.y2 = obj->coords.y1 + dropdown->option_h
                            + dropdown->max_visible_item * item_height - 1;
         }
         sgl_obj_set_dirty(obj);
@@ -265,7 +265,7 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t *obj, sgl_even
         }
 
         if (dropdown->is_open) {
-            sgl_dropdown_ensure_visible(dropdown, list_h, item_height);
+            sgl_dropdown_ensure_visible(dropdown, list_h, dropdown->option_h);
         }
         sgl_obj_set_dirty(obj);
     } break;
