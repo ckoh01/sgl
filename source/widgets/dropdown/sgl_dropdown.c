@@ -60,7 +60,7 @@ static void sgl_dropdown_clamp_pos_y(sgl_dropdown_t *dropdown, int list_h, int i
         dropdown->pos_y = 0;
     }
     else {
-        const int min_pos = list_h - dropdown->item_num * item_height;
+        const int min_pos = list_h - dropdown->item_num * item_height + item_height / 2;
         if (dropdown->pos_y < min_pos) {
             dropdown->pos_y = min_pos;
         }
@@ -204,7 +204,7 @@ static void sgl_dropdown_construct_cb(sgl_surf_t *surf, sgl_obj_t *obj, sgl_even
 
     case SGL_EVENT_MOVE_UP:
         if (dropdown->is_open) {
-            if ((dropdown->pos_y + dropdown->item_num * item_height) >= (list_h - item_height / 2)) {
+            if ((dropdown->pos_y + dropdown->item_num * item_height) > (list_h)) {
                 dropdown->pos_y -= evt->distance;
             }
             sgl_obj_set_dirty(obj);
