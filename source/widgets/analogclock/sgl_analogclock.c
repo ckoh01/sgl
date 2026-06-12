@@ -144,7 +144,7 @@ static void sgl_analogclock_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_e
 
             draw_line_fill_slanted(surf, &obj->area, sx, sy, px, py, 
                                    clock->hour_ptr_width, clock->hour_ptr_color, clock->alpha);
-            draw_line_fill_slanted(surf, &obj->area, cy, cy, sx, sy,
+            draw_line_fill_slanted(surf, &obj->area, cx, cy, sx, sy,
                                    clock->sec_ptr_width, clock->hour_ptr_color, clock->alpha);
         }
 
@@ -160,7 +160,7 @@ static void sgl_analogclock_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_e
 
             draw_line_fill_slanted(surf, &obj->area, sx, sy, px, py, 
                                    clock->min_ptr_width, clock->min_ptr_color, clock->alpha);
-            draw_line_fill_slanted(surf, &obj->area, cy, cy, sx, sy,
+            draw_line_fill_slanted(surf, &obj->area, cx, cy, sx, sy,
                                    clock->sec_ptr_width, clock->min_ptr_color, clock->alpha);
         }
 
