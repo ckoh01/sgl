@@ -391,7 +391,7 @@ void sgl_monitor_trace(sgl_surf_t *surf)
     else {
         monitor = sgl_obj_create(NULL);
         sgl_obj_set_pos(monitor, SGL_MONITOR_COORDS_X, SGL_MONITOR_COORDS_Y);
-        sgl_obj_set_size(monitor, SGL_MONITOR_COORDS_WIDTH, SGL_MONITOR_COORDS_WIDTH);
+        sgl_obj_set_size(monitor, SGL_MONITOR_COORDS_WIDTH, SGL_MONITOR_COORDS_HEIGHT);
         monitor->area = monitor->coords;
         sgl_page_set_color(monitor, SGL_MONITOR_COLOR);
         sgl_page_set_alpha(monitor, SGL_MONITOR_ALPHA);

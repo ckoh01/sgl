@@ -26,7 +26,6 @@
 static void sgl_statusbar_construct_cb(sgl_surf_t *surf, sgl_obj_t *obj, sgl_event_t *evt)
 {
     sgl_statusbar_t *bar = sgl_container_of(obj, sgl_statusbar_t, obj);
-    uint32_t unicode, ch_index;
     int16_t pos_x, pos_y, char_w;
 
     switch (evt->type) {
@@ -34,35 +33,26 @@ static void sgl_statusbar_construct_cb(sgl_surf_t *surf, sgl_obj_t *obj, sgl_eve
         sgl_draw_fill_rect(surf, &obj->area, &obj->coords, obj->radius, bar->bg_color, bar->bg_alpha);
 
         pos_y = obj->coords.y1 + (sgl_obj_get_height(obj) - bar->font->font_height) / 2;
-        pos_x = obj->coords.x1 + bar->icon_left_margin;
+        pos_x = obj->coords.x1 + bar->left_margin;
 
         for (int i = 0; i < SGL_STATUSBAR_LEFT_MAX; i++) {
-            if (bar->icon_left[i].icon[0] == '\0') {
+            if (bar->slot_left[i].slot == NULL) {
                 continue;
             }
-
-            sgl_utf8_to_unicode(bar->icon_left[i].icon, &unicode);
-            ch_index = sgl_search_unicode_ch_index(bar->font, unicode);
-            if (bar->icon_left[i].alpha != 0) {
-                sgl_draw_character(surf, &obj->area, pos_x, pos_y, ch_index, bar->icon_left[i].color, bar->icon_left[i].alpha, bar->font);
-            }
-
-            pos_x += ((bar->font->table[ch_index].adv_w + 8)>> 4) + bar->icon_space;
+            sgl_draw_string(surf, &obj->area, pos_x, pos_y, bar->slot_left[i].slot, bar->slot_left[i].color, bar->slot_left[i].alpha, bar->font);
+            pos_x += sgl_font_get_string_width(bar->slot_left[i].slot, bar->font);
+            pos_x += bar->slot_space;
         }
 
-        pos_x = obj->coords.x2 - bar->icon_right_margin;
+        pos_x = obj->coords.x2 - bar->right_margin;
         for (int i = 0; i < SGL_STATUSBAR_RIGHT_MAX; i++) {
-            if (bar->icon_right[i].icon[0] == '\0') {
+            if (bar->slot_right[i].slot == NULL) {
                 continue;
             }
-
-            sgl_utf8_to_unicode(bar->icon_right[i].icon, &unicode);
-            ch_index = sgl_search_unicode_ch_index(bar->font, unicode);
-            char_w = ((bar->font->table[ch_index].adv_w + 8)>> 4);
-            if (bar->icon_right[i].alpha != 0) {
-                sgl_draw_character(surf, &obj->area, pos_x - char_w, pos_y, ch_index, bar->icon_right[i].color, bar->icon_right[i].alpha, bar->font);
-            }
-            pos_x -= (char_w + bar->icon_space);
+            char_w = sgl_font_get_string_width(bar->slot_right[i].slot, bar->font);
+            pos_x -= char_w;
+            sgl_draw_string(surf, &obj->area, pos_x, pos_y, bar->slot_right[i].slot, bar->slot_right[i].color, bar->slot_right[i].alpha, bar->font);
+            pos_x -= bar->slot_space;
         }
     break;
     default:
@@ -91,9 +81,9 @@ sgl_obj_t* sgl_statusbar_create(sgl_obj_t *parent)
 
     bar->bg_alpha = SGL_ALPHA_MAX / 2;
     bar->bg_color = sgl_rgb(20, 20, 20);
-    bar->icon_left_margin = 5;
-    bar->icon_right_margin = 5;
-    bar->icon_space = 4;
+    bar->left_margin = 5;
+    bar->right_margin = 5;
+    bar->slot_space = 4;
 
     return obj;
 }
@@ -134,48 +124,76 @@ void sgl_statusbar_set_bg_alpha(sgl_obj_t *obj, uint8_t alpha)
 }
 
 /**
- * @brief Set left icon
+ * @brief Set left slot
  * @param obj statusbar object
  * @param index icon index
- * @param icon icon, it is a UTF8 code
+ * @param slot it may be a UTF8 code or string
  */
-void sgl_statusbar_set_left_icon(sgl_obj_t *obj, uint8_t index, const char* icon)
+void sgl_statusbar_set_left_slot(sgl_obj_t *obj, uint8_t index, char* slot)
 {
     sgl_statusbar_t *bar = sgl_container_of(obj, sgl_statusbar_t, obj);
     if (index < SGL_STATUSBAR_LEFT_MAX) {
-        memcpy(&bar->icon_left[index].icon, icon, sizeof(bar->icon_left[0].icon));
-        bar->icon_left[index].alpha = SGL_ALPHA_MAX;
+        bar->slot_left[index].slot = slot;
+        bar->slot_left[index].alpha = SGL_ALPHA_MAX;
         sgl_obj_set_dirty(obj);
     }
 }
 
 /**
- * @brief Set right icon
+ * @brief Set right slot
  * @param obj statusbar object
  * @param index icon index
- * @param icon icon, it is a UTF8 code
+ * @param slot it may be a UTF8 code or string
  */
-void sgl_statusbar_set_right_icon(sgl_obj_t *obj, uint8_t index, const char* icon)
+void sgl_statusbar_set_right_slot(sgl_obj_t *obj, uint8_t index, char* slot)
 {
     sgl_statusbar_t *bar = sgl_container_of(obj, sgl_statusbar_t, obj);
     if (index < SGL_STATUSBAR_RIGHT_MAX) {
-        memcpy(&bar->icon_right[index].icon, icon, sizeof(bar->icon_right[0].icon));
-        bar->icon_right[index].alpha = SGL_ALPHA_MAX;
+        bar->slot_right[index].slot = slot;
+        bar->slot_right[index].alpha = SGL_ALPHA_MAX;
         sgl_obj_set_dirty(obj);
     }
 }
 
 /**
- * @brief Set left icon alpha
+ * @brief Remove left slot
  * @param obj statusbar object
- * @param index icon index
- * @param alpha icon alpha
+ * @param index slot index
  */
-void sgl_statusbar_set_left_icon_alpha(sgl_obj_t *obj, uint8_t index, uint8_t alpha)
+void sgl_statusbar_remove_left_slot(sgl_obj_t *obj, uint8_t index)
 {
     sgl_statusbar_t *bar = sgl_container_of(obj, sgl_statusbar_t, obj);
     if (index < SGL_STATUSBAR_LEFT_MAX) {
-        bar->icon_left[index].alpha = alpha;
+        memmove(bar->slot_left + index, bar->slot_left + index + 1, (SGL_STATUSBAR_LEFT_MAX - index - 1) * sizeof(sgl_statusbar_slot_t));
+        sgl_obj_set_dirty(obj);
+    }
+}
+
+/**
+ * @brief Remove right slot
+ * @param obj statusbar object
+ * @param index slot index
+ */
+void sgl_statusbar_remove_right_slot(sgl_obj_t *obj, uint8_t index)
+{
+    sgl_statusbar_t *bar = sgl_container_of(obj, sgl_statusbar_t, obj);
+    if (index < SGL_STATUSBAR_RIGHT_MAX) {
+        memmove(bar->slot_right + index, bar->slot_right + index + 1, (SGL_STATUSBAR_RIGHT_MAX - index - 1) * sizeof(sgl_statusbar_slot_t));
+        sgl_obj_set_dirty(obj);
+    }
+}
+
+/**
+ * @brief Set left slot alpha
+ * @param obj statusbar object
+ * @param index slot index
+ * @param alpha slot alpha
+ */
+void sgl_statusbar_set_left_slot_alpha(sgl_obj_t *obj, uint8_t index, uint8_t alpha)
+{
+    sgl_statusbar_t *bar = sgl_container_of(obj, sgl_statusbar_t, obj);
+    if (index < SGL_STATUSBAR_LEFT_MAX) {
+        bar->slot_left[index].alpha = alpha;
         sgl_obj_set_dirty(obj);
     }
 }
@@ -186,67 +204,67 @@ void sgl_statusbar_set_left_icon_alpha(sgl_obj_t *obj, uint8_t index, uint8_t al
  * @param index icon index
  * @param alpha icon alpha
  */
-void sgl_statusbar_set_right_icon_alpha(sgl_obj_t *obj, uint8_t index, uint8_t alpha)
+void sgl_statusbar_set_right_slot_alpha(sgl_obj_t *obj, uint8_t index, uint8_t alpha)
 {
     sgl_statusbar_t *bar = sgl_container_of(obj, sgl_statusbar_t, obj);
     if (index < SGL_STATUSBAR_RIGHT_MAX) {
-        bar->icon_right[index].alpha = alpha;
+        bar->slot_right[index].alpha = alpha;
         sgl_obj_set_dirty(obj);
     }
 }
 
 /**
- * @brief Set left icon color
+ * @brief Set left slot color
  * @param obj statusbar object
- * @param index icon index
- * @param color icon color
+ * @param index slot index
+ * @param color slot color
  */
-void sgl_statusbar_set_left_icon_color(sgl_obj_t *obj, uint8_t index, sgl_color_t color)
+void sgl_statusbar_set_left_slot_color(sgl_obj_t *obj, uint8_t index, sgl_color_t color)
 {
     sgl_statusbar_t *bar = sgl_container_of(obj, sgl_statusbar_t, obj);
     if (index < SGL_STATUSBAR_LEFT_MAX) {
-        bar->icon_left[index].color = color;
+        bar->slot_left[index].color = color;
         sgl_obj_set_dirty(obj);
     }
 }
 
 /**
- * @brief Set right icon color
+ * @brief Set right slot color
  * @param obj statusbar object
- * @param index icon index
- * @param color icon color
+ * @param index slot index
+ * @param color slot color
  */
-void sgl_statusbar_set_right_icon_color(sgl_obj_t *obj, uint8_t index, sgl_color_t color)
+void sgl_statusbar_set_right_slot_color(sgl_obj_t *obj, uint8_t index, sgl_color_t color)
 {
     sgl_statusbar_t *bar = sgl_container_of(obj, sgl_statusbar_t, obj);
     if (index < SGL_STATUSBAR_LEFT_MAX) {
-        bar->icon_right[index].color = color;
+        bar->slot_right[index].color = color;
         sgl_obj_set_dirty(obj);
     }
 }
 
 /**
- * @brief Set icon space
+ * @brief Set slot space
  * @param obj statusbar object
- * @param space icon space
+ * @param space slot space
  */
-void sgl_statusbar_set_icon_space(sgl_obj_t *obj, uint8_t space)
+void sgl_statusbar_set_slot_space(sgl_obj_t *obj, uint8_t space)
 {
     sgl_statusbar_t *bar = sgl_container_of(obj, sgl_statusbar_t, obj);
-    bar->icon_space = space;
+    bar->slot_space = space;
     sgl_obj_set_dirty(obj);
 }
 
 /**
- * @brief Set icon margin
+ * @brief Set slot margin
  * @param obj statusbar object
- * @param left left icon margin
- * @param right right icon margin
+ * @param left left slot margin
+ * @param right right slot margin
  */
-void sgl_statusbar_set_icon_margin(sgl_obj_t *obj, uint8_t left, uint8_t right)
+void sgl_statusbar_set_slot_margin(sgl_obj_t *obj, uint8_t left, uint8_t right)
 {
     sgl_statusbar_t *bar = sgl_container_of(obj, sgl_statusbar_t, obj);
-    bar->icon_left_margin = left;
-    bar->icon_right_margin = right;
+    bar->left_margin = left;
+    bar->right_margin = right;
     sgl_obj_set_dirty(obj);
 }

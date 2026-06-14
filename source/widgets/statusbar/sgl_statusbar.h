@@ -35,25 +35,25 @@
 extern "C" {
 #endif
 
-#define SGL_STATUSBAR_LEFT_MAX       (4)
-#define SGL_STATUSBAR_RIGHT_MAX      (8)
+#define SGL_STATUSBAR_LEFT_MAX            (4)
+#define SGL_STATUSBAR_RIGHT_MAX           (8)
 
-typedef struct sgl_statusbar_icon {
-    char icon[4];
+typedef struct sgl_statusbar_slot {
+    char *slot;
     sgl_color_t color;
     uint8_t alpha;
     uint8_t reserved;
-} sgl_statusbar_icon_t;
+} sgl_statusbar_slot_t;
 
 typedef struct sgl_statusbar {
     sgl_obj_t obj;
     const sgl_font_t *font;
-    sgl_statusbar_icon_t icon_left[SGL_STATUSBAR_LEFT_MAX];
-    sgl_statusbar_icon_t icon_right[SGL_STATUSBAR_RIGHT_MAX];
-    uint8_t icon_left_margin;
-    uint8_t icon_right_margin;
+    sgl_statusbar_slot_t slot_left[SGL_STATUSBAR_LEFT_MAX];
+    sgl_statusbar_slot_t slot_right[SGL_STATUSBAR_RIGHT_MAX];
+    uint8_t left_margin;
+    uint8_t right_margin;
     sgl_color_t bg_color;
-    uint8_t icon_space;
+    uint8_t slot_space;
     uint8_t bg_alpha;
 } sgl_statusbar_t;
 
@@ -87,28 +87,42 @@ void sgl_statusbar_set_bg_color(sgl_obj_t *obj, sgl_color_t color);
 void sgl_statusbar_set_bg_alpha(sgl_obj_t *obj, uint8_t alpha);
 
 /**
- * @brief Set left icon
+ * @brief Set left slot
  * @param obj statusbar object
  * @param index icon index
- * @param icon icon, it is a UTF8 code
+ * @param slot it may be a UTF8 code or string
  */
-void sgl_statusbar_set_left_icon(sgl_obj_t *obj, uint8_t index, const char* icon);
+void sgl_statusbar_set_left_slot(sgl_obj_t *obj, uint8_t index, char* slot);
 
 /**
- * @brief Set right icon
+ * @brief Set right slot
  * @param obj statusbar object
  * @param index icon index
- * @param icon icon, it is a UTF8 code
+ * @param slot it may be a UTF8 code or string
  */
-void sgl_statusbar_set_right_icon(sgl_obj_t *obj, uint8_t index, const char* icon);
+void sgl_statusbar_set_right_slot(sgl_obj_t *obj, uint8_t index, char* slot);
 
 /**
- * @brief Set left icon alpha
+ * @brief Remove left slot
  * @param obj statusbar object
- * @param index icon index
- * @param alpha icon alpha
+ * @param index slot index
  */
-void sgl_statusbar_set_left_icon_alpha(sgl_obj_t *obj, uint8_t index, uint8_t alpha);
+void sgl_statusbar_remove_left_slot(sgl_obj_t *obj, uint8_t index);
+
+/**
+ * @brief Remove right slot
+ * @param obj statusbar object
+ * @param index slot index
+ */
+void sgl_statusbar_remove_right_slot(sgl_obj_t *obj, uint8_t index);
+
+/**
+ * @brief Set left slot alpha
+ * @param obj statusbar object
+ * @param index slot index
+ * @param alpha slot alpha
+ */
+void sgl_statusbar_set_left_slot_alpha(sgl_obj_t *obj, uint8_t index, uint8_t alpha);
 
 /**
  * @brief Set right icon alpha
@@ -116,38 +130,38 @@ void sgl_statusbar_set_left_icon_alpha(sgl_obj_t *obj, uint8_t index, uint8_t al
  * @param index icon index
  * @param alpha icon alpha
  */
-void sgl_statusbar_set_right_icon_alpha(sgl_obj_t *obj, uint8_t index, uint8_t alpha);
+void sgl_statusbar_set_right_slot_alpha(sgl_obj_t *obj, uint8_t index, uint8_t alpha);
 
 /**
- * @brief Set left icon color
+ * @brief Set left slot color
  * @param obj statusbar object
- * @param index icon index
- * @param color icon color
+ * @param index slot index
+ * @param color slot color
  */
-void sgl_statusbar_set_left_icon_color(sgl_obj_t *obj, uint8_t index, sgl_color_t color);
+void sgl_statusbar_set_left_slot_color(sgl_obj_t *obj, uint8_t index, sgl_color_t color);
 
 /**
- * @brief Set right icon color
+ * @brief Set right slot color
  * @param obj statusbar object
- * @param index icon index
- * @param color icon color
+ * @param index slot index
+ * @param color slot color
  */
-void sgl_statusbar_set_right_icon_color(sgl_obj_t *obj, uint8_t index, sgl_color_t color);
+void sgl_statusbar_set_right_slot_color(sgl_obj_t *obj, uint8_t index, sgl_color_t color);
 
 /**
- * @brief Set icon space
+ * @brief Set slot space
  * @param obj statusbar object
- * @param space icon space
+ * @param space slot space
  */
-void sgl_statusbar_set_icon_space(sgl_obj_t *obj, uint8_t space);
+void sgl_statusbar_set_slot_space(sgl_obj_t *obj, uint8_t space);
 
 /**
- * @brief Set icon margin
+ * @brief Set slot margin
  * @param obj statusbar object
- * @param left left icon margin
- * @param right right icon margin
+ * @param left left slot margin
+ * @param right right slot margin
  */
-void sgl_statusbar_set_icon_margin(sgl_obj_t *obj, uint8_t left, uint8_t right);
+void sgl_statusbar_set_slot_margin(sgl_obj_t *obj, uint8_t left, uint8_t right);
 
 #ifdef __cplusplus
 }
