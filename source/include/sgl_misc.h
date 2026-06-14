@@ -56,9 +56,9 @@ void sgl_boot_logo(void);
 #define  SGL_MONITOR_ALPHA              (128)
 
 #define  SGL_MONITOR_COORDS             (sgl_area_t){.x1 = SGL_MONITOR_COORDS_X,     \
-                                                     .x2 = SGL_MONITOR_COORDS_X + SGL_SCREEN_WIDTH - 1,     \
+                                                     .x2 = SGL_MONITOR_COORDS_X + SGL_MONITOR_COORDS_WIDTH - 1,     \
                                                      .y1 = SGL_MONITOR_COORDS_Y,     \
-                                                     .y2 = SGL_MONITOR_COORDS_Y + SGL_SCREEN_HEIGHT - 1,    \
+                                                     .y2 = SGL_MONITOR_COORDS_Y + SGL_MONITOR_COORDS_HEIGHT - 1,    \
                                                     }
 
 void sgl_monitor_trace(sgl_surf_t *surf);
