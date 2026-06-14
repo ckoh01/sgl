@@ -207,6 +207,42 @@ void sgl_statusbar_add_right_slot(sgl_obj_t *obj, uint8_t index, char* slot)
 }
 
 /**
+ * @brief Set left slot
+ * @param obj statusbar object
+ * @param index slot index
+ * @param slot it may be a UTF8 code or string
+ */
+void sgl_statusbar_set_left_slot(sgl_obj_t *obj, uint8_t index, char* slot)
+{
+    sgl_statusbar_t *bar = sgl_container_of(obj, sgl_statusbar_t, obj);
+    sgl_area_t area;
+
+    if (index < SGL_STATUSBAR_LEFT_MAX) {
+        bar->slot_left[index].slot = slot;
+        statusbar_update_slot(bar, index, true, &area);
+        sgl_obj_update_area(&area);
+    }
+}
+
+/**
+ * @brief Set right slot
+ * @param obj statusbar object
+ * @param index slot index
+ * @param slot it may be a UTF8 code or string
+ */
+void sgl_statusbar_set_right_slot(sgl_obj_t *obj, uint8_t index, char* slot)
+{
+    sgl_statusbar_t *bar = sgl_container_of(obj, sgl_statusbar_t, obj);
+    sgl_area_t area;
+
+    if (index < SGL_STATUSBAR_RIGHT_MAX) {
+        bar->slot_right[index].slot = slot;
+        statusbar_update_slot(bar, index, false, &area);
+        sgl_obj_update_area(&area);
+    }
+}
+
+/**
  * @brief Remove left slot
  * @param obj statusbar object
  * @param index slot index
