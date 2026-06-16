@@ -91,25 +91,25 @@ typedef struct sgl_block_dev {
  * @rename: rename file
  */
 typedef struct sgl_vfs_ops {
-    int (*mount)(struct sgl_vfs_ops *ops, struct sgl_block_dev *dev, const char *mount_point, void *fs_config);
-    int (*unmount)(struct sgl_vfs_ops *ops, const char *mount_point);
+    int (*mount)(void **fs, struct sgl_block_dev *dev, const char *mount_point, void *fs_config);
+    int (*unmount)(void *fs, const char *mount_point);
 
-    int (*open)(struct sgl_vfs_ops *ops, const char *path, uint32_t flags);
-    int (*close)(struct sgl_vfs_ops *ops, int fd);
-    int (*read)(struct sgl_vfs_ops *ops, int fd, void *buffer, uint32_t count);
-    int (*write)(struct sgl_vfs_ops *ops, int fd, const void *buffer, uint32_t count);
+    int (*open)(void *fs, const char *path, uint32_t flags);
+    int (*close)(void *fs, int fd);
+    int (*read)(void *fs, int fd, void *buffer, uint32_t count);
+    int (*write)(void *fs, int fd, const void *buffer, uint32_t count);
 
-    int (*opendir)(struct sgl_vfs_ops *ops, const char *path, int *dd);
-    int (*readdir)(struct sgl_vfs_ops *ops, int dd, char *name, uint32_t name_size, uint32_t *type);
-    int (*closedir)(struct sgl_vfs_ops *ops, int dd);
+    int (*opendir)(void *fs, const char *path, int *dd);
+    int (*readdir)(void *fs, int dd, char *name, uint32_t name_size, uint32_t *type);
+    int (*closedir)(void *fs, int dd);
 
-    int (*sync)(struct sgl_vfs_ops *ops);
-    int (*format)(struct sgl_vfs_ops *ops);
-    int (*remove)(struct sgl_vfs_ops *ops, const char *path);
-    int (*mkdir)(struct sgl_vfs_ops *ops, const char *path);
+    int (*sync)(void *fs);
+    int (*format)(void *fs);
+    int (*remove)(void *fs, const char *path);
+    int (*mkdir)(void *fs, const char *path);
 
-    int (*stat)(struct sgl_vfs_ops *ops, const char *path, sgl_stat_t *st);
-    int (*rename)(struct sgl_vfs_ops *ops, const char *old_path, const char *new_path);
+    int (*stat)(void *fs, const char *path, sgl_stat_t *st);
+    int (*rename)(void *fs, const char *old_path, const char *new_path);
 } sgl_vfs_ops_t;
 
 /**
@@ -161,6 +161,141 @@ typedef struct {
     int16_t  local_dd;
     sgl_mount_point_t *mp;
 } sgl_dd_ctrl_t;
+
+/**
+ * @brief Register a file system type
+ * @param fs_type File system type pointer
+ * @return 0 on success, -1 on failure
+ */
+int sgl_fs_register(sgl_fs_type_t *fs_type);
+
+/**
+ * @brief Mount a file system
+ * @param mount_point Mount point path
+ * @param fs_name File system name
+ * @param dev Block device pointer
+ * @param fs_config File system configuration pointer
+ * @return 0 on success, -1 on failure
+ */
+int sgl_fs_mount(const char *mount_point, const char *fs_name, sgl_block_dev_t *dev, void *fs_config);
+
+/**
+ * @brief Resolve a path to a mount point
+ * @param path Path to resolve
+ * @param rel_path Pointer to store the relative path
+ * @return Mount point pointer, or NULL if not found
+ */
+static sgl_mount_point_t* resolve_path(const char *path, const char **rel_path);
+
+/**
+ * @brief Open a file
+ * @param path Path to open
+ * @param flags Open flags
+ * @return File descriptor, or -1 on failure
+ */
+int sgl_open(const char *path, uint32_t flags);
+
+/**
+ * @brief Close a file
+ * @param fd File descriptor
+ * @return 0 on success, -1 on failure
+ */
+int sgl_close(int fd);
+
+/**
+ * @brief Read from a file
+ * @param fd File descriptor
+ * @param buffer Buffer to read into
+ * @param count Number of bytes to read
+ * @return Number of bytes read, or -1 on failure
+ */
+int sgl_read(int fd, void *buffer, uint32_t count);
+
+/**
+ * @brief Write to a file
+ * @param fd File descriptor
+ * @param buffer Buffer to write from
+ * @param count Number of bytes to write
+ * @return Number of bytes written, or -1 on failure
+ */
+int sgl_write(int fd, const void *buffer, uint32_t count);
+
+/**
+ * @brief Get file status
+ * @param path Path to get status for
+ * @param st Pointer to store status
+ * @return 0 on success, -1 on failure
+ */
+int sgl_stat(const char *path, sgl_stat_t *st);
+
+/**
+ * @brief Open a directory
+ * @param path Path to open
+ * @param dd Pointer to store directory descriptor
+ * @return 0 on success, -1 on failure
+ */
+int sgl_opendir(const char *path, int *dd);
+
+/**
+ * @brief Read a directory entry
+ * @param dd Directory descriptor
+ * @param name Buffer to store name
+ * @param name_size Size of name buffer
+ * @param type Pointer to store type
+ * @return 0 on success, -1 on failure
+ */
+int sgl_readdir(int dd, char *name, uint32_t name_size, uint32_t *type);
+
+/**
+ * @brief Close a directory
+ * @param dd Directory descriptor
+ * @return 0 on success, -1 on failure
+ */
+int sgl_closedir(int dd);
+
+/**
+ * @brief Unmount a filesystem
+ * @param mount_point Mount point to unmount
+ * @return 0 on success, -1 on failure
+ */
+int sgl_unmount(const char *mount_point);
+
+/**
+ * @brief Synchronize a filesystem
+ * @param path Path to synchronize, or NULL to synchronize all mounted filesystems
+ * @return 0 on success, -1 on failure
+ */
+int sgl_sync(const char *path);
+
+/**
+ * @brief Format a filesystem
+ * @param mount_point Mount point to format
+ * @param fs_config Filesystem configuration
+ * @return 0 on success, -1 on failure
+ */
+int sgl_format(const char *mount_point, void *fs_config);
+
+/**
+ * @brief Remove a file or directory
+ * @param path Path to remove
+ * @return 0 on success, -1 on failure
+ */
+int sgl_remove(const char *path);
+
+/**
+ * @brief Create a directory
+ * @param path Path to create
+ * @return 0 on success, -1 on failure
+ */
+int sgl_mkdir(const char *path);
+
+/**
+ * @brief Rename a file or directory
+ * @param old_path Old path
+ * @param new_path New path
+ * @return 0 on success, -1 on failure
+ */
+int sgl_rename(const char *old_path, const char *new_path);
 
 #ifdef __cplusplus
 }

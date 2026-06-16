@@ -25,11 +25,19 @@
 #include <string.h>
 #include <sgl_mm.h>
 
+/**
+ * @brief File system context data
+ */
 static SGL_LIST_HEAD(g_fs_type_list);
 static SGL_LIST_HEAD(g_mount_list);
 static sgl_fd_ctrl_t g_fd_table[SGL_MAX_FD];
 static sgl_dd_ctrl_t g_dd_table[SGL_MAX_DD];
 
+/**
+ * @brief Find a file system type by name
+ * @param name File system type name
+ * @return File system type pointer, or NULL if not found
+ */
 static sgl_fs_type_t* find_fs_type(const char *name)
 {
     sgl_fs_type_t *pos, *tmp;
@@ -41,6 +49,11 @@ static sgl_fs_type_t* find_fs_type(const char *name)
     return NULL;
 }
 
+/**
+ * @brief Register a file system type
+ * @param fs_type File system type pointer
+ * @return 0 on success, -1 on failure
+ */
 int sgl_fs_register(sgl_fs_type_t *fs_type)
 {
     if (!fs_type || !fs_type->name || !fs_type->ops) {
@@ -57,6 +70,14 @@ int sgl_fs_register(sgl_fs_type_t *fs_type)
     return 0;
 }
 
+/**
+ * @brief Mount a file system
+ * @param mount_point Mount point path
+ * @param fs_name File system name
+ * @param dev Block device pointer
+ * @param fs_config File system configuration pointer
+ * @return 0 on success, -1 on failure
+ */
 int sgl_fs_mount(const char *mount_point, const char *fs_name, sgl_block_dev_t *dev, void *fs_config)
 {
     sgl_fs_type_t *type = find_fs_type(fs_name);
@@ -76,16 +97,24 @@ int sgl_fs_mount(const char *mount_point, const char *fs_name, sgl_block_dev_t *
     mp->fs_type = type;
     mp->fs_data = NULL;
 
-    int ret = type->ops->mount(type->ops, dev, mount_point, fs_config);
+    void *fs = NULL;
+    int ret = type->ops->mount(&fs, dev, mount_point, fs_config);
     if (ret != 0) {
         sgl_free(mp);
         return ret;
     }
+    mp->fs_data = fs;
 
     sgl_list_add_node_at_tail(&g_mount_list, &mp->node);
     return 0;
 }
 
+/**
+ * @brief Resolve a path to a mount point
+ * @param path Path to resolve
+ * @param rel_path Pointer to store the relative path
+ * @return Mount point pointer, or NULL if not found
+ */
 static sgl_mount_point_t* resolve_path(const char *path, const char **rel_path)
 {
     sgl_mount_point_t *best_mp = NULL;
@@ -113,6 +142,12 @@ static sgl_mount_point_t* resolve_path(const char *path, const char **rel_path)
     return best_mp;
 }
 
+/**
+ * @brief Open a file
+ * @param path Path to open
+ * @param flags Open flags
+ * @return File descriptor, or -1 on failure
+ */
 int sgl_open(const char *path, uint32_t flags)
 {
     const char *rel;
@@ -122,7 +157,7 @@ int sgl_open(const char *path, uint32_t flags)
         return -1;
     }
 
-    int local_fd = mp->fs_type->ops->open(mp->fs_type->ops, rel, flags);
+    int local_fd = mp->fs_type->ops->open(mp->fs_data, rel, flags);
     if (local_fd < 0) {
         SGL_LOG_ERROR("failed to open file: %s", path);
         return local_fd;
@@ -137,12 +172,17 @@ int sgl_open(const char *path, uint32_t flags)
         }
     }
 
-    mp->fs_type->ops->close(mp->fs_type->ops, local_fd);
+    mp->fs_type->ops->close(mp->fs_data, local_fd);
     SGL_LOG_ERROR("FD table full, max=%d", SGL_MAX_FD);
     return -1;
 }
 
-int sgl_close(int fd) 
+/**
+ * @brief Close a file
+ * @param fd File descriptor
+ * @return 0 on success, -1 on failure
+ */
+int sgl_close(int fd)
 {
     int ret;
     sgl_fd_ctrl_t *ctrl;
@@ -152,7 +192,7 @@ int sgl_close(int fd)
     }
 
     ctrl = &g_fd_table[fd];
-    ret = ctrl->mp->fs_type->ops->close(ctrl->mp->fs_type->ops, ctrl->local_fd);
+    ret = ctrl->mp->fs_type->ops->close(ctrl->mp->fs_data, ctrl->local_fd);
 
     ctrl->used = 0;
     ctrl->mp = NULL;
@@ -161,7 +201,14 @@ int sgl_close(int fd)
     return ret;
 }
 
-int sgl_read(int fd, void *buffer, uint32_t count) 
+/**
+ * @brief Read from a file
+ * @param fd File descriptor
+ * @param buffer Buffer to read into
+ * @param count Number of bytes to read
+ * @return Number of bytes read, or -1 on failure
+ */
+int sgl_read(int fd, void *buffer, uint32_t count)
 {
     if (fd < 0 || fd >= SGL_MAX_FD || !g_fd_table[fd].used) {
         SGL_LOG_ERROR("invalid file descriptor: %d", fd);
@@ -170,14 +217,21 @@ int sgl_read(int fd, void *buffer, uint32_t count)
 
     sgl_fd_ctrl_t *ctrl = &g_fd_table[fd];
     return ctrl->mp->fs_type->ops->read(
-        ctrl->mp->fs_type->ops, 
+        ctrl->mp->fs_data,
         ctrl->local_fd, 
         buffer, 
         count
     );
 }
 
-int sgl_write(int fd, const void *buffer, uint32_t count) 
+/**
+ * @brief Write to a file
+ * @param fd File descriptor
+ * @param buffer Buffer to write from
+ * @param count Number of bytes to write
+ * @return Number of bytes written, or -1 on failure
+ */
+int sgl_write(int fd, const void *buffer, uint32_t count)
 {
     if (fd < 0 || fd >= SGL_MAX_FD || !g_fd_table[fd].used) {
         SGL_LOG_ERROR("invalid file descriptor: %d", fd);
@@ -185,13 +239,19 @@ int sgl_write(int fd, const void *buffer, uint32_t count)
     }
 
     sgl_fd_ctrl_t *ctrl = &g_fd_table[fd];
-    return ctrl->mp->fs_type->ops->write( ctrl->mp->fs_type->ops, 
+    return ctrl->mp->fs_type->ops->write(ctrl->mp->fs_data,
                                           ctrl->local_fd, 
                                           buffer, 
                                           count
                                         );
 }
 
+/**
+ * @brief Get file status
+ * @param path Path to get status for
+ * @param st Pointer to store status
+ * @return 0 on success, -1 on failure
+ */
 int sgl_stat(const char *path, sgl_stat_t *st)
 {
     const char *rel;
@@ -200,9 +260,15 @@ int sgl_stat(const char *path, sgl_stat_t *st)
         SGL_LOG_ERROR("no mount point found for path: %s", path);
         return -1;
     }
-    return mp->fs_type->ops->stat(mp->fs_type->ops, rel, st);
+    return mp->fs_type->ops->stat(mp->fs_data, rel, st);
 }
 
+/**
+ * @brief Open a directory
+ * @param path Path to open
+ * @param dd Pointer to store directory descriptor
+ * @return 0 on success, -1 on failure
+ */
 int sgl_opendir(const char *path, int *dd)
 {
     const char *rel;
@@ -214,7 +280,7 @@ int sgl_opendir(const char *path, int *dd)
     if (!dd) return -1;
 
     int local_dd = -1;
-    int ret = mp->fs_type->ops->opendir(mp->fs_type->ops, rel, &local_dd);
+    int ret = mp->fs_type->ops->opendir(mp->fs_data, rel, &local_dd);
     if (ret != 0 || local_dd < 0) {
         SGL_LOG_ERROR("failed to opendir: %s", path);
         return ret;
@@ -230,11 +296,19 @@ int sgl_opendir(const char *path, int *dd)
         }
     }
 
-    mp->fs_type->ops->closedir(mp->fs_type->ops, local_dd);
+    mp->fs_type->ops->closedir(mp->fs_data, local_dd);
     SGL_LOG_ERROR("directory descriptor table full, max=%d", SGL_MAX_DD);
     return -1;
 }
 
+/**
+ * @brief Read a directory entry
+ * @param dd Directory descriptor
+ * @param name Buffer to store name
+ * @param name_size Size of name buffer
+ * @param type Pointer to store type
+ * @return 0 on success, -1 on failure
+ */
 int sgl_readdir(int dd, char *name, uint32_t name_size, uint32_t *type)
 {
     if (dd < 0 || dd >= SGL_MAX_DD || !g_dd_table[dd].used) {
@@ -244,7 +318,7 @@ int sgl_readdir(int dd, char *name, uint32_t name_size, uint32_t *type)
 
     sgl_dd_ctrl_t *ctrl = &g_dd_table[dd];
     return ctrl->mp->fs_type->ops->readdir(
-        ctrl->mp->fs_type->ops,
+        ctrl->mp->fs_data,
         ctrl->local_dd,
         name,
         name_size,
@@ -252,6 +326,11 @@ int sgl_readdir(int dd, char *name, uint32_t name_size, uint32_t *type)
     );
 }
 
+/**
+ * @brief Close a directory
+ * @param dd Directory descriptor
+ * @return 0 on success, -1 on failure
+ */
 int sgl_closedir(int dd)
 {
     if (dd < 0 || dd >= SGL_MAX_DD || !g_dd_table[dd].used) {
@@ -260,7 +339,7 @@ int sgl_closedir(int dd)
     }
 
     sgl_dd_ctrl_t *ctrl = &g_dd_table[dd];
-    int ret = ctrl->mp->fs_type->ops->closedir(ctrl->mp->fs_type->ops, ctrl->local_dd);
+    int ret = ctrl->mp->fs_type->ops->closedir(ctrl->mp->fs_data, ctrl->local_dd);
 
     ctrl->used = 0;
     ctrl->mp = NULL;
@@ -269,6 +348,11 @@ int sgl_closedir(int dd)
     return ret;
 }
 
+/**
+ * @brief Unmount a filesystem
+ * @param mount_point Mount point to unmount
+ * @return 0 on success, -1 on failure
+ */
 int sgl_unmount(const char *mount_point)
 {
     int ret;
@@ -282,7 +366,7 @@ int sgl_unmount(const char *mount_point)
                 }
             }
 
-            ret = pos->fs_type->ops->unmount(pos->fs_type->ops, mount_point);
+            ret = pos->fs_type->ops->unmount(pos->fs_data, mount_point);
             sgl_list_del_node(&pos->node);
             sgl_free(pos);
             return ret;
@@ -292,36 +376,52 @@ int sgl_unmount(const char *mount_point)
     return -1;
 }
 
+/**
+ * @brief Synchronize a filesystem
+ * @param path Path to synchronize, or NULL to synchronize all mounted filesystems
+ * @return 0 on success, -1 on failure
+ */
 int sgl_sync(const char *path)
 {
     if (path) {
         const char *rel;
         sgl_mount_point_t *mp = resolve_path(path, &rel);
         if (!mp) return -1;
-        return mp->fs_type->ops->sync(mp->fs_type->ops);
+        return mp->fs_type->ops->sync(mp->fs_data);
     }
     else {
         sgl_mount_point_t *pos, *tmp;
         sgl_list_for_each_entry_safe(pos, tmp, &g_mount_list, sgl_mount_point_t, node) {
-            pos->fs_type->ops->sync(pos->fs_type->ops);
+            pos->fs_type->ops->sync(pos->fs_data);
         }
         return 0;
     }
 }
 
+/**
+ * @brief Format a filesystem
+ * @param mount_point Mount point to format
+ * @param fs_config Filesystem configuration
+ * @return 0 on success, -1 on failure
+ */
 int sgl_format(const char *mount_point, void *fs_config)
 {
     sgl_mount_point_t *pos, *tmp;
     SGL_UNUSED(fs_config);
     sgl_list_for_each_entry_safe(pos, tmp, &g_mount_list, sgl_mount_point_t, node) {
         if (strcmp(pos->path, mount_point) == 0) {
-            return pos->fs_type->ops->format(pos->fs_type->ops);
+            return pos->fs_type->ops->format(pos->fs_data);
         }
     }
     SGL_LOG_ERROR("mount point not found for format: %s", mount_point);
     return -1;
 }
 
+/**
+ * @brief Remove a file or directory
+ * @param path Path to remove
+ * @return 0 on success, -1 on failure
+ */
 int sgl_remove(const char *path)
 {
     const char *rel;
@@ -330,9 +430,14 @@ int sgl_remove(const char *path)
         SGL_LOG_ERROR("No mount point found for remove: %s", path);
         return -1;
     }
-    return mp->fs_type->ops->remove(mp->fs_type->ops, rel);
+    return mp->fs_type->ops->remove(mp->fs_data, rel);
 }
 
+/**
+ * @brief Create a directory
+ * @param path Path to create
+ * @return 0 on success, -1 on failure
+ */
 int sgl_mkdir(const char *path)
 {
     const char *rel;
@@ -341,9 +446,15 @@ int sgl_mkdir(const char *path)
         SGL_LOG_ERROR("no mount point found for mkdir: %s", path);
         return -1;
     }
-    return mp->fs_type->ops->mkdir(mp->fs_type->ops, rel);
+    return mp->fs_type->ops->mkdir(mp->fs_data, rel);
 }
 
+/**
+ * @brief Rename a file or directory
+ * @param old_path Old path
+ * @param new_path New path
+ * @return 0 on success, -1 on failure
+ */
 int sgl_rename(const char *old_path, const char *new_path)
 {
     const char *old_rel, *new_rel;
@@ -360,5 +471,5 @@ int sgl_rename(const char *old_path, const char *new_path)
         return -1;
     }
 
-    return old_mp->fs_type->ops->rename(old_mp->fs_type->ops, old_rel, new_rel);
+    return old_mp->fs_type->ops->rename(old_mp->fs_data, old_rel, new_rel);
 }
