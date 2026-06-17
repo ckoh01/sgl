@@ -55,7 +55,12 @@ static void sgl_rectangle_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_eve
     };
 
     if(evt->type == SGL_EVENT_DRAW_MAIN) {
-        sgl_draw_rect(surf, &obj->area, &obj->coords, &desc);
+        if (rect->alpha != SGL_ALPHA_MIN) {
+            sgl_draw_rect(surf, &obj->area, &obj->coords, &desc);
+        }
+        else {
+            sgl_draw_fill_rect_border(surf, &obj->area, &obj->coords, obj->radius, rect->border_color, obj->border, rect->border_alpha);
+        }
     }
     else if(evt->type == SGL_EVENT_PRESSED) {
         if(sgl_obj_is_flexible(obj)) {
