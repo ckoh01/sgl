@@ -24,7 +24,7 @@
 #ifndef __SGL_FATFS_H__
 #define __SGL_FATFS_H__
 
-#include "sgl_fs.h"
+#include <sgl_fs.h>
 
 #ifdef __cplusplus
 extern "C" {

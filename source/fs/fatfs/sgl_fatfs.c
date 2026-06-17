@@ -30,9 +30,9 @@
 #define FAT_MAX_OPEN_DIRS   4
 #define FAT_MAX_VOLS        4
 
-#define FAT_TYPE_12  12
-#define FAT_TYPE_16  16
-#define FAT_TYPE_32  32
+#define FAT_TYPE_12         12
+#define FAT_TYPE_16         16
+#define FAT_TYPE_32         32
 
 #define FAT_ATTR_READ_ONLY  0x01
 #define FAT_ATTR_HIDDEN     0x02
@@ -50,16 +50,6 @@
 #define FAT12_EOC_MIN  0xFF8
 #define FAT16_EOC_MIN  0xFFF8
 #define FAT32_EOC_MIN  0x0FFFFFF8
-
-/* Open flags */
-#ifndef SGL_O_RDONLY
-#define SGL_O_RDONLY  0x00
-#define SGL_O_WRONLY  0x01
-#define SGL_O_RDWR    0x02
-#define SGL_O_CREAT   0x10
-#define SGL_O_TRUNC   0x20
-#define SGL_O_APPEND  0x40
-#endif
 
 /* ===================== Error codes ===================== */
 enum {
@@ -144,7 +134,7 @@ typedef struct {
 } fat_ctx_t;
 
 /* Global volume -> block device mapping */
-static sgl_block_dev_t *g_vol_dev_map[FAT_MAX_VOLS];
+static sgl_block_dev_t *vol_dev_map[FAT_MAX_VOLS];
 
 /* ===================== Low-level helpers ===================== */
 
@@ -657,7 +647,7 @@ static int fatfs_mount(void **fs, sgl_block_dev_t *dev,
     ctx->dev = dev;
     ctx->vol_id = cfg->vol_id;
     ctx->sec_buf_num = 0xFFFFFFFF;
-    g_vol_dev_map[cfg->vol_id] = dev;
+    vol_dev_map[cfg->vol_id] = dev;
 
     ctx->sec_buf = (uint8_t *)sgl_malloc(512);
     if (!ctx->sec_buf) { sgl_free(ctx); return FAT_ERR_NO_MEM; }
@@ -715,7 +705,7 @@ static int fatfs_unmount(void *fs, const char *mount_point)
     fat_ctx_t *ctx = (fat_ctx_t *)fs;
     if (!ctx) return FAT_ERR_INVALID;
     fat_cache_invalidate(ctx);
-    g_vol_dev_map[ctx->vol_id] = NULL;
+    vol_dev_map[ctx->vol_id] = NULL;
     sgl_free(ctx->sec_buf);
     sgl_free(ctx);
     return FAT_OK;
@@ -1140,7 +1130,7 @@ static int fatfs_rename(void *fs, const char *old_path, const char *new_path)
 
 /* ===================== FS Registration ===================== */
 
-static sgl_fs_ops_t g_fatfs_ops = {
+static sgl_fs_ops_t fatfs_ops = {
     .mount    = fatfs_mount,
     .unmount  = fatfs_unmount,
     .open     = fatfs_open,
@@ -1158,13 +1148,13 @@ static sgl_fs_ops_t g_fatfs_ops = {
     .rename   = fatfs_rename,
 };
 
-static sgl_fs_type_t g_fatfs_type = {
+static sgl_fs_type_t fatfs_type = {
     .name = "fatfs",
-    .ops  = &g_fatfs_ops,
+    .ops  = &fatfs_ops,
 };
 
 int sgl_fatfs_register(void)
 {
-    memset(g_vol_dev_map, 0, sizeof(g_vol_dev_map));
-    return sgl_fs_register(&g_fatfs_type);
+    memset(vol_dev_map, 0, sizeof(vol_dev_map));
+    return sgl_fs_register(&fatfs_type);
 }

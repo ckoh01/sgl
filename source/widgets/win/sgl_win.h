@@ -31,7 +31,6 @@
 #include <sgl_log.h>
 #include <sgl_mm.h>
 #include <sgl_cfgfix.h>
-#include <string.h>
 
 /**
  * @brief sgl window struct
@@ -160,4 +159,11 @@ void sgl_win_set_title_bg_color(sgl_obj_t *obj, sgl_color_t color);
  */
 void sgl_win_set_close_btn_color(sgl_obj_t *obj, sgl_color_t color);
 
-#endif // !__SGL_LED_H__
+/**
+ * @brief get window title height
+ * @param obj window object
+ * @return title height
+ */
+int16_t sgl_win_title_height(sgl_obj_t *obj);
+
+#endif // !__SGL_WIN_H__

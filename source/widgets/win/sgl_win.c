@@ -23,12 +23,13 @@
  */
 
 #include <sgl_theme.h>
+#include <string.h>
 #include "sgl_win.h"
 
 static void sgl_win_construct_cb(sgl_surf_t *surf, sgl_obj_t* obj, sgl_event_t *evt)
 {
     sgl_win_t *win = sgl_container_of(obj, sgl_win_t, obj);
-    sgl_rect_t title_area = obj->area;
+    sgl_rect_t title_area = obj->coords;
     sgl_rect_t body_area = obj->area;
     sgl_draw_rect_t desc = win->bg;
     sgl_pos_t align_pos;
@@ -278,4 +279,15 @@ void sgl_win_set_close_btn_color(sgl_obj_t *obj, sgl_color_t color)
     sgl_win_t *win = sgl_container_of(obj, sgl_win_t, obj);
     win->close_color = color;
     sgl_obj_set_dirty(obj);
+}
+
+/**
+ * @brief get window title height
+ * @param obj window object
+ * @return title height
+ */
+int16_t sgl_win_title_height(sgl_obj_t *obj)
+{
+    sgl_win_t *win = sgl_container_of(obj, sgl_win_t, obj);
+    return sgl_max3(obj->radius, win->title_h, sgl_font_get_height(win->title_font));
 }

@@ -29,16 +29,6 @@
 #define SLFS_BLK_DATA        0x03
 #define SLFS_BLK_FREE        0xFF
 
-/* Open flags */
-#ifndef SGL_O_RDONLY
-#define SGL_O_RDONLY  0x00
-#define SGL_O_WRONLY  0x01
-#define SGL_O_RDWR    0x02
-#define SGL_O_CREAT   0x10
-#define SGL_O_TRUNC   0x20
-#define SGL_O_APPEND  0x40
-#endif
-
 /* Error codes */
 enum {
     SLFS_OK = 0,
@@ -1118,7 +1108,7 @@ static int littlefs_rename(void *fs, const char *old_path, const char *new_path)
 
 /* ===================== Registration ===================== */
 
-static sgl_fs_ops_t g_littlefs_ops = {
+static sgl_fs_ops_t littlefs_ops = {
     .mount    = littlefs_mount,
     .unmount  = littlefs_unmount,
     .open     = littlefs_open,
@@ -1136,12 +1126,12 @@ static sgl_fs_ops_t g_littlefs_ops = {
     .rename   = littlefs_rename,
 };
 
-static sgl_fs_type_t g_littlefs_type = {
+static sgl_fs_type_t littlefs_type = {
     .name = "littlefs",
-    .ops  = &g_littlefs_ops,
+    .ops  = &littlefs_ops,
 };
 
 int sgl_littlefs_register(void)
 {
-    return sgl_fs_register(&g_littlefs_type);
+    return sgl_fs_register(&littlefs_type);
 }

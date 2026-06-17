@@ -10,7 +10,7 @@
 #ifndef __SGL_LITTLEFS_H__
 #define __SGL_LITTLEFS_H__
 
-#include "sgl_fs.h"
+#include <sgl_fs.h>
 
 #ifdef __cplusplus
 extern "C" {

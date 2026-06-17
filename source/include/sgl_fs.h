@@ -25,22 +25,30 @@
 #ifndef __SGL_FS_H__
 #define __SGL_FS_H__
 
-#include "sgl_core.h"
+#include <sgl_core.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define SGL_S_IFMT   0170000  /* mask of file type */
-#define SGL_S_IFREG  0100000  /* regular file */
-#define SGL_S_IFDIR  0040000  /* directory file */
+#define SGL_S_IFMT    0170000  /* mask of file type */
+#define SGL_S_IFREG   0100000  /* regular file */
+#define SGL_S_IFDIR   0040000  /* directory file */
 
-#define SGL_S_IRWXU  00700    /* owner permission */
-#define SGL_S_IRWXG  00070    /* group permission */
-#define SGL_S_IRWXO  00007    /* other permission */
+#define SGL_S_IRWXU   00700    /* owner permission */
+#define SGL_S_IRWXG   00070    /* group permission */
+#define SGL_S_IRWXO   00007    /* other permission */
 
-#define SGL_MAX_FD   (8)      /* max file descriptor */
-#define SGL_MAX_DD   (4)      /* max directory descriptor */
+/* Open flags */
+#define SGL_O_RDONLY  0x00
+#define SGL_O_WRONLY  0x01
+#define SGL_O_RDWR    0x02
+#define SGL_O_CREAT   0x10
+#define SGL_O_TRUNC   0x20
+#define SGL_O_APPEND  0x40
+
+#define SGL_MAX_FD    (8)      /* max file descriptor */
+#define SGL_MAX_DD    (4)      /* max directory descriptor */
 
 /**
  * @brief File status
